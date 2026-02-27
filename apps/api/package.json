@@ -1,0 +1,19 @@
+{
+  "name": "nehemiah-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.2.0",
+    "@nehemiah/core": "workspace:*",
+    "@nehemiah/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240320.1",
+    "typescript": "^5.4.3",
+    "wrangler": "^3.42.0"
+  }
+}

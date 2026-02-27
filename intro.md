@@ -56,7 +56,7 @@ A simplified mobile-friendly interface for the Visitation Department.
 
 ### B. Intelligent Attendance Tracking (Offline Ready)
 
-Ushers and Unit Heads need to record data regardless of the church's Wi-Fi stability.
+Ushers and Unit Heads need to record data regardless of the church's Wi-Fi stability or their mobile network.
 
 * **Local-First Input:** Data is saved to the browser/app's local storage immediately.
 * **Background Sync:** When the device reconnects to the internet, the records are "pushed" to the Cloudflare D1 database.

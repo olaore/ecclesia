@@ -1,49 +1,44 @@
-# Nehemiah Data Harmonization
+# Nehemiah Church Management System
 
-One script to merge a core Google Sheet export + legacy birthday list into a single clean CSV.
+A multi-tenant, loosely-coupled, offline-first PWA for automating church administrative operations.
 
-## Privacy
+> **Note**: This system was recently migrated to a modern pnpm monorepo architecture focusing on the Cloudflare ecosystem (Vite PWA + Cloudflare Workers + D1 Database).
 
-- Outputs go to `out/`, inputs in `data/` (both gitignored).
-- Runs locally. No external services.
+## Architecture
 
-## Inputs
+This project is a monorepo consisting of:
 
-### `data/core.csv` (required)
+- **`apps/web`**: Frontend Single Page Application (React + Vite + Tailwind), designed offline-first using `vite-plugin-pwa`.
+- **`apps/api`**: Backend API serving as an edge function on Cloudflare Workers (Hono.js).
+- **`packages/db`**: Database schema, Drizzle ORM setup, and migrations.
+- **`packages/core`**: Shared Zod schemas, TypeScript interfaces, and domain models.
+- **`tools/data-importer`**: Python utility scripts (e.g., legacy CSV data harmonization).
 
-Google Form export. **These 4 headers must be present** (case-insensitive, spaces become underscores):
+## Getting Started
 
-| Header | Example |
-|---|---|
-| `Full Name` | `ALADE MARVELOUS ADEWALE` |
-| `Phone` | `08137219996` |
-| `Email` | `alade@gmail.com` |
-| `DOB` | `8/27` (Month/Day) |
+### Prerequisites
+- Node.js >= 20.0
+- pnpm >= 9.0
+- Python 3.10+ (only for `tools/data-importer`)
 
-All other columns pass through untouched.
-
-### `data/birthday.csv` (optional)
-
-Legacy birthday list: `name,birthday_mm_dd` (e.g. `Adebayo Anike,01/01`).
-
-## Setup
+### Setup the Monorepo
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Clone the repository
+git clone <repo-url>
+cd nehemiah
+
+# Install all dependencies across apps and packages
+pnpm install
+
+# Start both the frontend and backend in parallel
+pnpm dev
 ```
 
-## Run
+### Deployment
 
-```sh
-python scripts/harmonize.py --core data/core.csv --birthdays data/birthday.csv
-```
+- The frontend (`apps/web`) is built as a static site and deployed to Cloudflare Pages.
+- The backend (`apps/api`) is deployed to Cloudflare Workers via Wrangler.
+- Shared logic lives strictly in the packages layer to allow for maximal portability if deploying outside of Cloudflare.
 
-## Output
-
-**One file:** `out/master_members.csv`
-
-Columns include `member_id`, all original CSV columns, plus:
-- `_source`: `core` or `birthday_only`
-- `_needs_review`: empty if clean, otherwise describes the ambiguity
+For deeper architectural context, read `docs/00-spine/SYSTEM_SPINE.md` and `AGENTS.md`.

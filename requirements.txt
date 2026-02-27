@@ -1,4 +1,0 @@
-pandas>=2.0
-PyYAML>=6.0
-python-dateutil>=2.9
-pytest>=8.0
