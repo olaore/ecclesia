@@ -41,7 +41,7 @@ export const guestsTable = sqliteTable('guests', {
   email: text('email'),
   phone: text('phone'),
   visitDate: integer('visit_date', { mode: 'timestamp' }),
-  status: text('status').default('first_time').notNull(), // e.g. 'first_time', 'returning', 'joined'
+  status: text('status').default('first_time').notNull(), // 'first_time' or 'joined'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

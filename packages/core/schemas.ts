@@ -56,7 +56,7 @@ export const guestSchema = z.object({
   email: z.string().email().optional().or(z.literal("")).nullable(),
   phone: z.string().optional().nullable(),
   visitDate: z.date().optional().nullable(),
-  status: z.enum(['first_time', 'returning', 'joined']).default('first_time'),
+  status: z.enum(['first_time', 'joined']).default('first_time'),
 });
 
 export type Guest = z.infer<typeof guestSchema>;
