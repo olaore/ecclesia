@@ -1,0 +1,9 @@
+/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Never commit PII exports or outputs
+/data/
+/out/
+
