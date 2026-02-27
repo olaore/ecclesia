@@ -3,17 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "test": "./node_modules/.bin/vitest run",
     "dev": "wrangler dev src/index.ts",
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
-    "hono": "^4.2.0",
     "@nehemiah/core": "workspace:*",
-    "@nehemiah/db": "workspace:*"
+    "@nehemiah/db": "workspace:*",
+    "drizzle-orm": "^0.30.0",
+    "hono": "^4.2.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240320.1",
+    "@cloudflare/vitest-pool-workers": "^0.12.18",
+    "@cloudflare/workers-types": "^4.20260305.0",
     "typescript": "^5.4.3",
-    "wrangler": "^3.42.0"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.69.0"
   }
 }

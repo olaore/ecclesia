@@ -31,6 +31,13 @@ cd nehemiah
 # Install all dependencies across apps and packages
 pnpm install
 
+# Initialize local D1 database (Run migrations)
+pnpm --filter nehemiah-api exec wrangler d1 migrations apply nehemiah-db --local
+
+# Setup local secrets
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+# Edit apps/api/.dev.vars to set your JWT_SECRET
+
 # Start both the frontend and backend in parallel
 pnpm dev
 ```

@@ -72,3 +72,39 @@ export const auditLogSchema = z.object({
 });
 
 export type AuditLog = z.infer<typeof auditLogSchema>;
+
+// Auth & Users
+export const userRoleSchema = z.enum(['sysadmin', 'superadmin', 'admin', 'user']);
+export type UserRole = z.infer<typeof userRoleSchema>;
+
+export const userSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  role: userRoleSchema,
+  unitId: z.string().optional().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type User = z.infer<typeof userSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export type LoginRequest = z.infer<typeof loginSchema>;
+
+export const registerSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export type RegisterRequest = z.infer<typeof registerSchema>;
+
+export const authResponseSchema = z.object({
+  token: z.string(),
+  user: userSchema,
+});
+
+export type AuthResponse = z.infer<typeof authResponseSchema>;

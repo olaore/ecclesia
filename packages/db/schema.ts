@@ -65,3 +65,13 @@ export const auditLogsTable = sqliteTable('audit_logs', {
   changes: text('changes'), // JSON string representing what changed (e.g., {"phone": {"old": "123", "new": "456"}})
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+export const usersTable = sqliteTable('users', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  role: text('role').notNull().default('admin'), // 'sysadmin', 'superadmin', 'admin', 'user'
+  unitId: text('unit_id'), // Scoped access for admins
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
