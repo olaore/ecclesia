@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AGE_GROUPS, GENDERS, MARITAL_STATUSES } from "./constants";
 
 // Example shared schema
 export const memberSchema = z.object({
@@ -7,18 +8,9 @@ export const memberSchema = z.object({
   email: z.string().email().optional().or(z.literal("")).nullable(),
   phone: z.string().optional().nullable(),
   homeAddress: z.string().optional().nullable(),
-  gender: z.enum(['Male', 'Female']).optional().nullable(),
-  ageGroup: z.enum([
-    '0-10',
-    '11-18',
-    '19-25',
-    '26-30',
-    '31-40',
-    '41-50',
-    '51-70',
-    '71-upwards'
-  ]).optional().nullable(),
-  maritalStatus: z.enum(['Single', 'Married', 'Divorced', 'Widower']).optional().nullable(),
+  gender: z.enum(GENDERS).optional().nullable(),
+  ageGroup: z.enum(AGE_GROUPS).optional().nullable(),
+  maritalStatus: z.enum(MARITAL_STATUSES).optional().nullable(),
   occupation: z.string().optional().nullable(),
   department: z.string().optional().nullable(), // Will become an enum or FK later
   dobMonth: z.number().int().min(1).max(12).optional().nullable(),

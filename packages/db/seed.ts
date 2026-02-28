@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
+import { AGE_GROUPS, GENDERS, MARITAL_STATUSES } from '@nehemiah/core';
+import { getNigerianFullName, getNigerianPhone, getNigerianAddress, getNigerianOccupation } from './nigerian-data';
 
 const DEPARTMENTS = [
   'Choir',
@@ -12,22 +14,20 @@ const DEPARTMENTS = [
   'Welfare',
 ];
 
-const AGE_GROUPS = ['Child', 'Teenager', 'Young Adult', 'Adult', 'Elder'];
-const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
-
 export function generateMembers(count: number) {
   return Array.from({ length: count }).map(() => {
     const isMarried = faker.datatype.boolean() && faker.number.int({ min: 1, max: 100 }) > 30;
+    const gender = faker.helpers.arrayElement(GENDERS);
     return {
       id: faker.string.uuid(),
-      fullName: faker.person.fullName(),
+      fullName: getNigerianFullName(),
       email: faker.internet.email(),
-      phone: faker.phone.number(),
-      homeAddress: faker.location.streetAddress(),
-      gender: faker.person.sex(),
+      phone: getNigerianPhone(),
+      homeAddress: getNigerianAddress(),
+      gender,
       ageGroup: faker.helpers.arrayElement(AGE_GROUPS),
-      maritalStatus: isMarried ? 'Married' : faker.helpers.arrayElement(['Single', 'Divorced', 'Widowed']),
-      occupation: faker.person.jobTitle(),
+      maritalStatus: isMarried ? 'Married' : faker.helpers.arrayElement(MARITAL_STATUSES.filter(s => s !== 'Married')),
+      occupation: getNigerianOccupation(),
       department: faker.helpers.arrayElement([...DEPARTMENTS, null]),
       dobMonth: faker.date.birthdate().getMonth() + 1,
       dobDay: faker.date.birthdate().getDate(),
@@ -42,9 +42,9 @@ export function generateMembers(count: number) {
 export function generateGuests(count: number) {
   return Array.from({ length: count }).map(() => ({
     id: faker.string.uuid(),
-    fullName: faker.person.fullName(),
+    fullName: getNigerianFullName(),
     email: faker.internet.email(),
-    phone: faker.phone.number(),
+    phone: getNigerianPhone(),
     visitDate: faker.date.recent({ days: 60 }),
     status: faker.helpers.arrayElement(['first_time', 'joined']),
   }));
@@ -53,7 +53,7 @@ export function generateGuests(count: number) {
 export function generateKnownPeople(count: number) {
   return Array.from({ length: count }).map(() => ({
     id: faker.string.uuid(),
-    fullName: faker.person.fullName(),
+    fullName: getNigerianFullName(),
     dobMonth: faker.date.birthdate().getMonth() + 1,
     dobDay: faker.date.birthdate().getDate(),
   }));
@@ -63,13 +63,13 @@ export function generateUsers() {
   return [
     {
       id: faker.string.uuid(),
-      email: 'sysadmin@devcenter.co',
+      email: 'sysadmin@eombc.com',
       passwordHash: '8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a:8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a',
       role: 'sysadmin',
     },
     {
       id: faker.string.uuid(),
-      email: 'admin@devcenter.co',
+      email: 'admin@eombc.com',
       passwordHash: '8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a:8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a',
       role: 'admin',
     }
