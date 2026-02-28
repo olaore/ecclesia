@@ -14,7 +14,7 @@
     "dotenv": "^17.3.1",
     "drizzle-kit": "^0.31.9",
     "tsx": "^4.21.0",
-    "typescript": "^5.4.3"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "seed": "tsx seed.ts && pnpm --filter nehemiah-api exec wrangler d1 execute nehemiah-db --local --file=../../packages/db/seed.sql",

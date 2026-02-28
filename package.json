@@ -17,7 +17,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.3"
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
   }
 }

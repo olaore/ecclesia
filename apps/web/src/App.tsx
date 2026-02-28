@@ -1,14 +1,67 @@
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { AuthLayout } from "./layouts/AuthLayout";
+import { DashboardLayout } from "./layouts/DashboardLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LoginPage } from "./pages/auth/LoginPage";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+/**
+ * Temp Mock Dashboard until M10
+ */
+const DashboardHome = () => (
+  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <h2 className="text-3xl font-bold mb-4">Welcome back!</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="h-32 glass rounded-2xl animate-pulse" />
+      ))}
+    </div>
+  </div>
+);
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full backdrop-blur-sm bg-slate-800/50 p-8 rounded-2xl shadow-xl border border-slate-700">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent mb-4">
-          Nehemiah CMS
-        </h1>
-        <p className="text-slate-400">
-          Church Management System — Offline ready.
-        </p>
-      </div>
-    </div>
-  )
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+          </Route>
+
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Placeholder routes for future modules */}
+              <Route path="/members" element={<div>Members Module</div>} />
+              <Route path="/guests" element={<div>Guests Module</div>} />
+              <Route path="/attendance" element={<div>Attendance Module</div>} />
+              <Route path="/events" element={<div>Events Module</div>} />
+            </Route>
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
 }

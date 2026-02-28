@@ -11,13 +11,13 @@
     "@nehemiah/core": "workspace:*",
     "@nehemiah/db": "workspace:*",
     "drizzle-orm": "^0.45.1",
-    "hono": "^4.2.0"
+    "hono": "^4.12.3"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.12.18",
     "@cloudflare/workers-types": "^4.20260305.0",
-    "typescript": "^5.4.3",
-    "vitest": "^3.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
     "wrangler": "^4.69.0"
   }
 }
