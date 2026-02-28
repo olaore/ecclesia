@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AGE_GROUPS, GENDERS, MARITAL_STATUSES } from "./constants";
+import { AGE_GROUPS, GENDERS, MARITAL_STATUSES, ATTENDANCE_EVENT_TYPES } from "./constants";
 
 // Example shared schema
 export const memberSchema = z.object({
@@ -61,6 +61,14 @@ export const guestSchema = z.object({
 
 export type Guest = z.infer<typeof guestSchema>;
 
+/** Schema for logging a new visitor (POST /api/v1/guests) — status defaults server-side */
+export const createGuestSchema = guestSchema.omit({ id: true, status: true });
+export type CreateGuestRequest = z.infer<typeof createGuestSchema>;
+
+/** Schema for updating guest details (PATCH /api/v1/guests/:id) — status protected */
+export const updateGuestSchema = guestSchema.omit({ id: true, status: true }).partial();
+export type UpdateGuestRequest = z.infer<typeof updateGuestSchema>;
+
 export const auditLogSchema = z.object({
   id: z.string().uuid().optional(),
   entityType: z.string().min(1),
@@ -108,3 +116,25 @@ export const authResponseSchema = z.object({
 });
 
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// Attendance
+
+export const attendanceEventSchema = z.object({
+  id: z.string().uuid().optional(),
+  eventType: z.enum(ATTENDANCE_EVENT_TYPES),
+  eventDate: z.coerce.date(),
+  headcount: z.number().int().min(0, "Headcount must be 0 or more"),
+  adultsCount: z.number().int().min(0).optional().nullable(),
+  childrenCount: z.number().int().min(0).optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export type AttendanceEvent = z.infer<typeof attendanceEventSchema>;
+
+/** Schema for recording an attendance event (POST /api/v1/attendance) */
+export const createAttendanceSchema = attendanceEventSchema.omit({ id: true });
+export type CreateAttendanceRequest = z.infer<typeof createAttendanceSchema>;
+
+/** Schema for updating attendance (PATCH /api/v1/attendance/:id) */
+export const updateAttendanceSchema = attendanceEventSchema.omit({ id: true }).partial();
+export type UpdateAttendanceRequest = z.infer<typeof updateAttendanceSchema>;

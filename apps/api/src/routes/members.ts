@@ -4,6 +4,7 @@ import { eq, like, and, sql, count, desc } from "drizzle-orm";
 import { membersTable, auditLogsTable } from "@nehemiah/db/schema";
 import { createMemberSchema, updateMemberSchema } from "@nehemiah/core/schemas";
 import { verifyJWT, hasRole } from "../middleware/auth";
+import { buildAuditDiff } from "../utils/audit";
 
 type Bindings = {
   DB: D1Database;
@@ -171,13 +172,7 @@ members.patch("/:id", async (c) => {
   }
 
   // Build a JSON diff of changed fields
-  const diff: Record<string, { old: unknown; new: unknown }> = {};
-  for (const [key, newVal] of Object.entries(updates)) {
-    const oldVal = (existing as Record<string, unknown>)[key];
-    if (oldVal !== newVal) {
-      diff[key] = { old: oldVal, new: newVal };
-    }
-  }
+  const diff = buildAuditDiff(existing as Record<string, unknown>, updates as Record<string, unknown>);
 
   const batchResults = await db.batch([
     db.update(membersTable)

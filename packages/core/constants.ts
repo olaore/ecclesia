@@ -16,3 +16,6 @@ export type Gender = (typeof GENDERS)[number];
 
 export const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widower'] as const;
 export type MaritalStatus = (typeof MARITAL_STATUSES)[number];
+
+export const ATTENDANCE_EVENT_TYPES = ['sunday_service', 'midweek_service', 'special_event'] as const;
+export type AttendanceEventType = (typeof ATTENDANCE_EVENT_TYPES)[number];

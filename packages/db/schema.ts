@@ -75,3 +75,16 @@ export const usersTable = sqliteTable('users', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+export const attendanceEventsTable = sqliteTable('attendance_events', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  eventType: text('event_type').notNull(), // 'sunday_service', 'midweek_service', 'special_event'
+  eventDate: integer('event_date', { mode: 'timestamp' }).notNull(),
+  headcount: integer('headcount').notNull(),
+  adultsCount: integer('adults_count'),
+  childrenCount: integer('children_count'),
+  notes: text('notes'),
+  recordedBy: text('recorded_by').notNull(), // userId who submitted
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

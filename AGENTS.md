@@ -54,3 +54,10 @@ Every data mutation (CREATE, UPDATE, DELETE, MERGE) across the system must be lo
 2. **Progressive Delivery**: Do not attempt to write 10 modules in one tool call. Scaffold -> Verify -> Implement -> Verify.
 3. **No assumptions on environment presence**: Do not assume global installations of tools unless specified. Rely on `pnpm x` or `uv run`. 
 4. **Types First**: Write `packages/core` schemas (Zod) and inferred TypeScript interfaces *before* writing the API endpoints or Frontend components that consume them.
+
+### Security & Data Integrity Gotchas
+
+5. **JSON Date Parsing**: Always use `z.coerce.date()` instead of `z.date()` when validating ISO date strings from JSON bodies. A standard `z.date()` will fail to parse the string during runtime requests.
+6. **Mass Assignment & Soft-Deletes**: When creating `.partial()` schemas for update endpoints (e.g. `PATCH`), ensure you strictly `.omit()` protected fields like `id` and `isActive`. Do not allow users to perform soft-deletes via generic `PATCH` routes; force those actions through explicit `DELETE` routes so the audit log writes a `DELETE` action, not `UPDATE`.
+7. **Atomic Operations for Audit Logs**: Every mutation must be audited. Do not write the main record and the audit log in separate `await db.insert()` statements. This creates a race condition (Audit Log Evaporation) where a network blip can cause the data change to succeed but the audit log to fail. Always wrap them in a `db.batch([])` or `db.transaction()` to ensure atomicity.
+8. **Date-Safe Audit Diffs**: Never compare values with `!==` in audit diff builders — `new Date(x) !== new Date(x)` is always `true` in JavaScript (reference equality). Use the shared `buildAuditDiff()` utility from `apps/api/src/utils/audit.ts`, which compares Date objects by `.getTime()`. This prevents noisy phantom diffs when unchanged dates are sent back in PATCH payloads.
