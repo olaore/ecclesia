@@ -19,3 +19,9 @@ export type MaritalStatus = (typeof MARITAL_STATUSES)[number];
 
 export const ATTENDANCE_EVENT_TYPES = ['sunday_service', 'midweek_service', 'special_event'] as const;
 export type AttendanceEventType = (typeof ATTENDANCE_EVENT_TYPES)[number];
+
+export const CHURCH_EVENT_TYPES = ['conference', 'retreat', 'special_service', 'other'] as const;
+export type ChurchEventType = (typeof CHURCH_EVENT_TYPES)[number];
+
+export const EVENT_VISIBILITY = ['public', 'private'] as const;
+export type EventVisibility = (typeof EVENT_VISIBILITY)[number];

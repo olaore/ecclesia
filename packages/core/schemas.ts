@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { AGE_GROUPS, GENDERS, MARITAL_STATUSES, ATTENDANCE_EVENT_TYPES } from "./constants";
+import {
+  AGE_GROUPS,
+  GENDERS,
+  MARITAL_STATUSES,
+  ATTENDANCE_EVENT_TYPES,
+  CHURCH_EVENT_TYPES,
+  EVENT_VISIBILITY,
+} from "./constants";
 
 // Example shared schema
 export const memberSchema = z.object({
@@ -40,15 +47,7 @@ export const knownPersonSchema = z.object({
 
 export type KnownPerson = z.infer<typeof knownPersonSchema>;
 
-export const memberNoteSchema = z.object({
-  id: z.string().uuid().optional(),
-  memberId: z.string().uuid(),
-  adminId: z.string().min(1, "Admin ID is required"),
-  note: z.string().min(1),
-  createdAt: z.coerce.date().optional(),
-});
 
-export type MemberNote = z.infer<typeof memberNoteSchema>;
 
 export const guestSchema = z.object({
   id: z.string().uuid().optional(),
@@ -138,3 +137,49 @@ export type CreateAttendanceRequest = z.infer<typeof createAttendanceSchema>;
 /** Schema for updating attendance (PATCH /api/v1/attendance/:id) */
 export const updateAttendanceSchema = attendanceEventSchema.omit({ id: true }).partial();
 export type UpdateAttendanceRequest = z.infer<typeof updateAttendanceSchema>;
+
+// Annual Church Events Calendar
+
+export const churchEventSchema = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional().nullable(),
+  eventType: z.enum(CHURCH_EVENT_TYPES),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  visibility: z.enum(EVENT_VISIBILITY).default("public"),
+});
+
+export type ChurchEvent = z.infer<typeof churchEventSchema>;
+
+/** Schema for creating a church event (POST /api/v1/events) */
+export const createChurchEventSchema = churchEventSchema.omit({ id: true });
+export type CreateChurchEventRequest = z.infer<typeof createChurchEventSchema>;
+
+/** Schema for bulk uploading events (POST /api/v1/events/bulk) */
+export const bulkCreateChurchEventsSchema = z.array(createChurchEventSchema);
+export type BulkCreateChurchEventsRequest = z.infer<typeof bulkCreateChurchEventsSchema>;
+
+/** Schema for updating a church event (PATCH /api/v1/events/:id) */
+export const updateChurchEventSchema = churchEventSchema.omit({ id: true }).partial();
+export type UpdateChurchEventRequest = z.infer<typeof updateChurchEventSchema>;
+
+// Member Notes
+export const memberNoteSchema = z.object({
+  id: z.string().uuid().optional(),
+  memberId: z.string().uuid(),
+  note: z.string().min(1, "Note cannot be empty"),
+  adminId: z.string().uuid().optional(), // Auto-filled from JWT on create
+});
+
+export type MemberNote = z.infer<typeof memberNoteSchema>;
+
+/** Schema for creating a note (POST /api/v1/notes) */
+export const createNoteSchema = memberNoteSchema.omit({ id: true, adminId: true });
+export type CreateNoteRequest = z.infer<typeof createNoteSchema>;
+
+/** Schema for updating a note (PATCH /api/v1/notes/:id) */
+export const updateNoteSchema = z.object({
+  note: z.string().min(1, "Note cannot be empty")
+});
+export type UpdateNoteRequest = z.infer<typeof updateNoteSchema>;

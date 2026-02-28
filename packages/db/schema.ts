@@ -88,3 +88,17 @@ export const attendanceEventsTable = sqliteTable('attendance_events', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+// Annual Church Events Calendar
+export const churchEventsTable = sqliteTable('church_events', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text('title').notNull(),
+  description: text('description'),
+  eventType: text('event_type').notNull(), // 'conference', 'retreat', 'special_service', 'other'
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+  visibility: text('visibility').default('public').notNull(), // 'public', 'private'
+  createdBy: text('created_by').notNull(), // userId who submitted
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

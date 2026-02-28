@@ -15,6 +15,13 @@
       "when": 1772248017004,
       "tag": "0001_melodic_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772249532532,
+      "tag": "0002_rapid_supernaut",
+      "breakpoints": true
     }
   ]
 }
