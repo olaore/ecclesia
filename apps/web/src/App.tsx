@@ -20,19 +20,7 @@ const queryClient = new QueryClient({
   },
 });
 
-/**
- * Temp Mock Dashboard until M10
- */
-const DashboardHome = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h2 className="text-3xl font-bold mb-4">Welcome back!</h2>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="h-32 glass rounded-2xl animate-pulse" />
-      ))}
-    </div>
-  </div>
-);
+import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
 
 export default function App() {
   return (
@@ -47,7 +35,7 @@ export default function App() {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
               {/* Placeholder routes for future modules */}

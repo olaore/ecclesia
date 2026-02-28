@@ -14,6 +14,8 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { AlertCircle, Loader2 } from "lucide-react";
 
+import { apiClient, ApiError } from "../../lib/api";
+
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,28 +25,16 @@ export const LoginPage: React.FC = () => {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      // For now, we'll hit the real endpoint. 
-      // In a real dev flow, we'd use environment variables for the API URL.
-      // Default to localhost:8787 if not set.
-      const baseUrl = "http://localhost:8787/api/v1";
-      const response = await fetch(`${baseUrl}/auth/login`, {
+      return apiClient<{ data: { token: string; user: any } }>("/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || "Invalid credentials");
-      }
-
-      return response.json();
     },
-    onSuccess: (data: any) => {
-      setAuth(data.data.token, data.data.user);
+    onSuccess: (response) => {
+      setAuth(response.data.token, response.data.user);
       navigate("/dashboard");
     },
-    onError: (err: any) => {
+    onError: (err: ApiError) => {
       setError(err.message);
     },
   });
