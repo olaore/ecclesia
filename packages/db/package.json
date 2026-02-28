@@ -18,6 +18,6 @@
   },
   "scripts": {
     "seed": "tsx seed.ts && pnpm --filter nehemiah-api exec wrangler d1 execute nehemiah-db --local --file=../../packages/db/seed.sql",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio --port 4983 --host 127.0.0.1"
   }
 }
