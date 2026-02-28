@@ -5,11 +5,19 @@
   "main": "index.ts",
   "types": "index.ts",
   "dependencies": {
-    "drizzle-orm": "^0.30.0",
-    "@nehemiah/core": "workspace:*"
+    "@nehemiah/core": "workspace:*",
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.14",
+    "@faker-js/faker": "^10.3.0",
+    "@types/node": "^25.3.2",
+    "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.9",
+    "tsx": "^4.21.0",
     "typescript": "^5.4.3"
+  },
+  "scripts": {
+    "seed": "tsx seed.ts && pnpm --filter nehemiah-api exec wrangler d1 execute nehemiah-db --local --file=../../packages/db/seed.sql",
+    "studio": "drizzle-kit studio"
   }
 }

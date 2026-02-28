@@ -8,3 +8,9 @@ tools/data-importer/data/
 tools/data-importer/out/
 
 node_modules/
+
+# Cloudflare Workers & Environment Variables
+.dev.vars
+.env
+.env.*.local
+.wrangler/

@@ -10,7 +10,7 @@
   "dependencies": {
     "@nehemiah/core": "workspace:*",
     "@nehemiah/db": "workspace:*",
-    "drizzle-orm": "^0.30.0",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.2.0"
   },
   "devDependencies": {

@@ -12,6 +12,8 @@
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
+    "seed": "pnpm --filter @nehemiah/db run seed",
+    "studio": "pnpm --filter @nehemiah/db run studio",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
