@@ -18,10 +18,18 @@ export const memberSchema = z.object({
   anniversaryMonth: z.number().int().min(1).max(12).optional().nullable(),
   anniversaryDay: z.number().int().min(1).max(31).optional().nullable(),
   isActive: z.boolean().default(true),
-  dateJoined: z.date().optional().nullable(),
+  dateJoined: z.coerce.date().optional().nullable(),
 });
 
 export type Member = z.infer<typeof memberSchema>;
+
+/** Schema for creating a new member (POST /api/v1/members) */
+export const createMemberSchema = memberSchema.omit({ id: true, isActive: true });
+export type CreateMemberRequest = z.infer<typeof createMemberSchema>;
+
+/** Schema for updating a member (PATCH /api/v1/members/:id) — all fields optional */
+export const updateMemberSchema = memberSchema.omit({ id: true, isActive: true }).partial();
+export type UpdateMemberRequest = z.infer<typeof updateMemberSchema>;
 
 export const knownPersonSchema = z.object({
   id: z.string().uuid().optional(),
@@ -37,7 +45,7 @@ export const memberNoteSchema = z.object({
   memberId: z.string().uuid(),
   adminId: z.string().min(1, "Admin ID is required"),
   note: z.string().min(1),
-  createdAt: z.date().optional(),
+  createdAt: z.coerce.date().optional(),
 });
 
 export type MemberNote = z.infer<typeof memberNoteSchema>;
@@ -47,7 +55,7 @@ export const guestSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email().optional().or(z.literal("")).nullable(),
   phone: z.string().optional().nullable(),
-  visitDate: z.date().optional().nullable(),
+  visitDate: z.coerce.date().optional().nullable(),
   status: z.enum(['first_time', 'joined']).default('first_time'),
 });
 
@@ -60,7 +68,7 @@ export const auditLogSchema = z.object({
   action: z.enum(['CREATE', 'UPDATE', 'DELETE', 'MERGE']),
   adminId: z.string().min(1),
   changes: z.string().optional().nullable(), // JSON string
-  createdAt: z.date().optional(),
+  createdAt: z.coerce.date().optional(),
 });
 
 export type AuditLog = z.infer<typeof auditLogSchema>;
@@ -74,8 +82,8 @@ export const userSchema = z.object({
   email: z.string().email(),
   role: userRoleSchema,
   unitId: z.string().optional().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export type User = z.infer<typeof userSchema>;

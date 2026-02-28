@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import auth from './routes/auth'
+import members from './routes/members'
 
 type Bindings = {
   DB: D1Database
@@ -13,5 +14,6 @@ app.get('/health', (c) => {
 })
 
 app.route('/api/v1/auth', auth)
+app.route('/api/v1/members', members)
 
 export default app
