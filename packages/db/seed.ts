@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
+import * as path from 'path';
 import { AGE_GROUPS, GENDERS, MARITAL_STATUSES } from '@nehemiah/core';
 import { getNigerianFullName, getNigerianPhone, getNigerianAddress, getNigerianOccupation } from './nigerian-data';
 
@@ -64,13 +65,13 @@ export function generateUsers() {
     {
       id: faker.string.uuid(),
       email: 'sysadmin@eombc.com',
-      passwordHash: '8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a:8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a',
+      passwordHash: '$pbkdf2-sha256$i=100000$c2c3ebc1f8d0d58280af6f8b6d74018f$1f48ea23300321533e745ef85474175b869b9d9fe5a1e582dcb14b073f7504c4',
       role: 'sysadmin',
     },
     {
       id: faker.string.uuid(),
       email: 'admin@eombc.com',
-      passwordHash: '8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a:8cb2237d0679ca88db6464eac60da96345513964fd28b00f6fc9a5ae31bf538a',
+      passwordHash: '$pbkdf2-sha256$i=100000$c2c3ebc1f8d0d58280af6f8b6d74018f$1f48ea23300321533e745ef85474175b869b9d9fe5a1e582dcb14b073f7504c4',
       role: 'admin',
     }
   ];
@@ -125,9 +126,9 @@ function generateSql() {
 }
 
 const sqlOutput = generateSql();
-const outputPath = './seed.sql';
+const outputPath = path.join(__dirname, 'seed.sql');
 
 fs.writeFileSync(outputPath, sqlOutput);
-console.log(`\n✅ Seed SQL successfully written to packages/db/${outputPath}`);
+console.log(`\n✅ Seed SQL successfully written to ${outputPath}`);
 console.log(`\n🚀 Run the following command to apply the mock data:`);
 console.log(`pnpm --filter nehemiah-api exec wrangler d1 execute nehemiah-db --local --file=../packages/db/seed.sql\n`);

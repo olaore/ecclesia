@@ -52,7 +52,7 @@ Every data mutation (CREATE, UPDATE, DELETE, MERGE) across the system must be lo
 
 1. **Do not execute dangerous terminal commands blindly**: No `rm -rf` without explicit verification.
 2. **Progressive Delivery**: Do not attempt to write 10 modules in one tool call. Scaffold -> Verify -> Implement -> Verify.
-3. **No assumptions on environment presence**: Do not assume global installations of tools unless specified. Rely on `pnpm x` or `uv run`. 
+3. **NEVER USE `npm` or `npx` (STRICT WARNING)**: This is a `pnpm` monorepo. Using `npm` or `npx` can severely break dependencies and workspaces, resulting in dire consequences from the system. **Always use `pnpm`**, `pnpm dlx`, or `pnpm exec tsx` instead of `npm`, `npx`, or global installations.
 4. **Types First**: Write `packages/core` schemas (Zod) and inferred TypeScript interfaces *before* writing the API endpoints or Frontend components that consume them.
 
 ### Security & Data Integrity Gotchas

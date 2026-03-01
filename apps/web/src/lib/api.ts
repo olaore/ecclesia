@@ -46,7 +46,7 @@ export async function apiClient<T>(
 
     try {
       errorData = await response.json();
-      errorMessage = errorData.message || errorMessage;
+      errorMessage = errorData.error || errorData.message || errorMessage;
     } catch {
       // It's not JSON (e.g., 502 Bad Gateway HTML page from Cloudflare)
       errorMessage = await response.text().catch(() => response.statusText);
