@@ -11,9 +11,10 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Welcome back, {firstName}!</h2>
-          <p className="text-muted-foreground mt-1 text-base">
-            Here's what's happening at the church this month.
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, {firstName}!</h2>
+          <p className="text-sm font-medium text-muted-foreground mt-1.5 flex items-center space-x-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span>Here's what's happening at the church this month.</span>
           </p>
         </div>
       </div>
