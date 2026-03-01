@@ -21,6 +21,10 @@ const queryClient = new QueryClient({
 });
 
 import { DashboardPage } from "./features/dashboard/pages/DashboardPage";
+import { MembersPage } from "./features/members/pages/MembersPage";
+import { GuestsPage } from "./features/guests/pages/GuestsPage";
+import { AttendancePage } from "./features/attendance/pages/AttendancePage";
+import { EventsPage } from "./features/events/pages/EventsPage";
 
 export default function App() {
   return (
@@ -39,10 +43,10 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
               {/* Placeholder routes for future modules */}
-              <Route path="/members" element={<div>Members Module</div>} />
-              <Route path="/guests" element={<div>Guests Module</div>} />
-              <Route path="/attendance" element={<div>Attendance Module</div>} />
-              <Route path="/events" element={<div>Events Module</div>} />
+              <Route path="/members" element={<MembersPage />} />
+              <Route path="/guests" element={<GuestsPage />} />
+              <Route path="/attendance" element={<AttendancePage />} />
+              <Route path="/events" element={<EventsPage />} />
             </Route>
           </Route>
 

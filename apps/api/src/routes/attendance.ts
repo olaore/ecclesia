@@ -5,6 +5,7 @@ import { attendanceEventsTable, auditLogsTable } from "@nehemiah/db/schema";
 import { createAttendanceSchema, updateAttendanceSchema } from "@nehemiah/core/schemas";
 import { verifyJWT, hasRole } from "../middleware/auth";
 import { buildAuditDiff } from "../utils/audit";
+import { buildAttendanceTrends } from "./analytics";
 
 type Bindings = {
   DB: D1Database;
@@ -20,6 +21,14 @@ const attendance = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 // All routes require authentication + admin-level role
 attendance.use("/*", (c, next) => verifyJWT(c.env.JWT_SECRET)(c, next));
 attendance.use("/*", hasRole(["sysadmin", "superadmin", "admin"]));
+
+attendance.get("/trends", async (c) => {
+  const db = drizzle(c.env.DB);
+  const qMonths = c.req.query("months") ? parseInt(c.req.query("months")!, 10) : 6;
+  const data = await buildAttendanceTrends(db, qMonths);
+
+  return c.json({ success: true, data });
+});
 
 /**
  * GET / — List attendance events (paginated + filterable)

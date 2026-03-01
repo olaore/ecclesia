@@ -52,7 +52,7 @@ export const DashboardLayout: React.FC = () => {
       )}>
         <div className="h-full flex flex-col p-4">
           <div className="flex items-center justify-between mb-8 px-2">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
               Nehemiah
             </h1>
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>

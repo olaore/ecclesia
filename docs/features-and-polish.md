@@ -1,0 +1,5 @@
+- on dashboard
+-- Birthdays & Anniversaries as absolute heading is good copy. no need for the subtext.
+-- the entire page scrolls based on the height of either celebrants or attendace cards. they should have sections and scroll independently. 
+-- The celebrants card should have 3 modes: today, this week(default with today highlighted if present.), month(calendar view so the card doesnt get too long. the days with celebrants have a a visual representation under or around them. they're clickable and opens a modal of the celebbrants for that day. days without event are unclickable.)
+-- no need to member or known_person. but phone number is good with easy copy button. automatic generation of the next months list of celebrant and emaailing to set emails every three days before the end of current month. instead of emails we'll use whatsapp in a later version so design the cron part decoupled from the message medium

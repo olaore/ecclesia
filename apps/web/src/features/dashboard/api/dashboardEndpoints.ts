@@ -7,6 +7,12 @@ export interface AttendanceTrend {
   midweekAvg: number;
 }
 
+interface AttendanceTrendApiResponse {
+  label: string;
+  sundayService: number;
+  midweekService: number;
+}
+
 export interface Celebrant {
   id: string;
   fullName: string;
@@ -20,8 +26,13 @@ export const useAttendanceTrends = () => {
   return useQuery({
     queryKey: ["attendance-trends"],
     queryFn: async () => {
-      const response = await apiClient<{ data: AttendanceTrend[] }>("/analytics/attendance-trends");
-      return response.data;
+      const response = await apiClient<{ data: AttendanceTrendApiResponse[] }>("/analytics/attendance/trends");
+
+      return response.data.map((trend) => ({
+        month: trend.label,
+        sundayAvg: trend.sundayService,
+        midweekAvg: trend.midweekService,
+      }));
     },
   });
 };

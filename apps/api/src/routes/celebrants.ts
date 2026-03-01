@@ -174,4 +174,116 @@ celebrants.get("/anniversaries", async (c) => {
   });
 });
 
+/**
+ * GET / — Unified list of Birthdays & Anniversaries
+ * 
+ * Query params:
+ *   month (1-12)
+ */
+celebrants.get("/", async (c) => {
+  const db = drizzle(c.env.DB);
+  const qMonth = c.req.query("month");
+
+  // Predicates for Member birthdays
+  let memberBdayPredicates = [eq(membersTable.isActive, true)];
+  let knownPersonBdayPredicates: any[] = [];
+
+  // Predicates for Anniversaries
+  let memberAnniversaryPredicates = [
+    eq(membersTable.isActive, true),
+    isNotNull(membersTable.anniversaryMonth)
+  ];
+
+  if (qMonth) {
+    const m = parseInt(qMonth, 10);
+    memberBdayPredicates.push(eq(membersTable.dobMonth, m));
+    knownPersonBdayPredicates.push(eq(knownPeopleTable.dobMonth, m));
+    memberAnniversaryPredicates.push(eq(membersTable.anniversaryMonth, m));
+  } else {
+    // If no month provided, use current month
+    const m = new Date().getMonth() + 1;
+    memberBdayPredicates.push(eq(membersTable.dobMonth, m));
+    knownPersonBdayPredicates.push(eq(knownPeopleTable.dobMonth, m));
+    memberAnniversaryPredicates.push(eq(membersTable.anniversaryMonth, m));
+  }
+
+  // Fetch birthdays
+  const membersBdayQuery = db
+    .select({
+      id: membersTable.id,
+      fullName: membersTable.fullName,
+      month: membersTable.dobMonth,
+      day: membersTable.dobDay,
+      source: sql<string>`'member'`.as("source"),
+    })
+    .from(membersTable)
+    .where(and(...memberBdayPredicates));
+
+  let knownPeopleBdayQuery;
+  if (knownPersonBdayPredicates.length > 0) {
+    knownPeopleBdayQuery = db
+      .select({
+        id: knownPeopleTable.id,
+        fullName: knownPeopleTable.fullName,
+        month: knownPeopleTable.dobMonth,
+        day: knownPeopleTable.dobDay,
+        source: sql<string>`'known_person'`.as("source"),
+      })
+      .from(knownPeopleTable)
+      .where(and(...knownPersonBdayPredicates));
+  } else {
+    knownPeopleBdayQuery = db
+      .select({
+        id: knownPeopleTable.id,
+        fullName: knownPeopleTable.fullName,
+        month: knownPeopleTable.dobMonth,
+        day: knownPeopleTable.dobDay,
+        source: sql<string>`'known_person'`.as("source"),
+      })
+      .from(knownPeopleTable);
+  }
+
+  const birthdays = await unionAll(membersBdayQuery as any, knownPeopleBdayQuery as any);
+
+  // Fetch anniversaries
+  const anniversaries = await db
+    .select({
+      id: membersTable.id,
+      fullName: membersTable.fullName,
+      month: membersTable.anniversaryMonth,
+      day: membersTable.anniversaryDay,
+      source: sql<string>`'member'`.as("source"),
+    })
+    .from(membersTable)
+    .where(and(...memberAnniversaryPredicates));
+
+  // Map to unified Celebrant interface
+  const unified = [
+    ...birthdays.map((b: any) => ({
+      id: b.id,
+      fullName: b.fullName,
+      type: b.source,
+      celebrationType: "birthday" as const,
+      day: b.day,
+      month: b.month,
+    })),
+    ...anniversaries.map((a: any) => ({
+      id: a.id,
+      fullName: a.fullName,
+      type: a.source,
+      celebrationType: "anniversary" as const,
+      day: a.day,
+      month: a.month,
+    }))
+  ];
+
+  // Sort by day inside the month
+  unified.sort((a, b) => (a.day || 0) - (b.day || 0));
+
+  return c.json({
+    success: true,
+    data: unified,
+  });
+});
+
 export default celebrants;
