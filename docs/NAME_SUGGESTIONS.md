@@ -11,7 +11,9 @@
 - **FlockFlow** — “church meets workflow automation” in one phrase
 - **BeaconHQ** — guidance/signal metaphor; strong “product” feel
 - **StewardHQ** — admin + care vibe; fits the audit/ops nature
-- **ChurchFlow** — explicit, clear, very discoverable
+- ~~**ChurchFlow** — explicit, clear, very discoverable~~
 - **FlockOps** — clean “ops suite” positioning
 - **BeaconFlow** — pairs well if “Flow” becomes the product line
 - **StewardFlow** — best “process + stewardship” blend
+
+https://churchflow.ailabsafrica.com/#ministries

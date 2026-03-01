@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { attendanceEventsTable } from "@nehemiah/db/schema";
 import { verifyJWT, hasRole } from "../middleware/auth";
-import { gte, lte, and, asc } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 
 type Bindings = {
   DB: D1Database;
@@ -45,6 +45,8 @@ export const buildAttendanceTrends = async (db: ReturnType<typeof drizzle>, mont
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth() - safeMonths + 1, 1);
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const startTimestamp = startDate.getTime();
+  const endTimestamp = endDate.getTime();
 
   const records = await db
     .select({
@@ -53,12 +55,6 @@ export const buildAttendanceTrends = async (db: ReturnType<typeof drizzle>, mont
       headcount: attendanceEventsTable.headcount,
     })
     .from(attendanceEventsTable)
-    .where(
-      and(
-        gte(attendanceEventsTable.eventDate, startDate),
-        lte(attendanceEventsTable.eventDate, endDate)
-      )
-    )
     .orderBy(asc(attendanceEventsTable.eventDate));
 
   const monthlyData: Record<string, {
@@ -75,6 +71,11 @@ export const buildAttendanceTrends = async (db: ReturnType<typeof drizzle>, mont
     const eventDate = normalizeTimestamp(record.eventDate);
 
     if (!eventDate) {
+      return;
+    }
+
+    const eventTimestamp = eventDate.getTime();
+    if (eventTimestamp < startTimestamp || eventTimestamp > endTimestamp) {
       return;
     }
 
