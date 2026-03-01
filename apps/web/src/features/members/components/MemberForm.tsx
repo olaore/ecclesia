@@ -21,8 +21,13 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "../../../components/ui/textarea";
 
-export const MemberForm: React.FC = () => {
+interface MemberFormProps {
+  onDone?: () => void;
+}
+
+export const MemberForm: React.FC<MemberFormProps> = ({ onDone }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CreateMemberRequest>({
@@ -47,7 +52,8 @@ export const MemberForm: React.FC = () => {
       console.log("Submitting member data:", data);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       // TODO: API Integration
-
+      form.reset();
+      onDone?.();
     } catch (error) {
       console.error("Failed to submit member profile:", error);
     } finally {
@@ -56,10 +62,10 @@ export const MemberForm: React.FC = () => {
   };
 
   return (
-    <div className="glass p-6 rounded-xl border">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold tracking-tight">Member Profile</h2>
-        <p className="text-sm text-muted-foreground">Complete the member details below.</p>
+    <div className="surface-card p-6 sm:p-7">
+      <div className="mb-6 border-b border-border/60 pb-5">
+        <h2 className="text-xl font-bold tracking-tight">Add member</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Capture the core details you need for the church directory.</p>
       </div>
 
       {/* @ts-ignore */}
@@ -186,16 +192,18 @@ export const MemberForm: React.FC = () => {
               <FormItem>
                 <FormLabel>Home Address</FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, City, ST 12345" {...field} value={field.value || ""} />
+                  <Textarea placeholder="Street address, area, and any location note that will help the church office." {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : "Save Member Profile"}
-          </Button>
+          <div className="flex justify-end">
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : "Save member"}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

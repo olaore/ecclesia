@@ -1,14 +1,32 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AttendanceForm } from "../components/AttendanceForm";
 import { Button } from "../../../components/ui/button";
-import { BarChart2, Loader2, Plus, Calendar } from "lucide-react";
+import { BarChart2, Loader2, Plus } from "lucide-react";
 import { apiClient } from "../../../lib/api";
 import { AttendanceEvent } from "@nehemiah/core/schemas";
 import { formatDateOnly } from "../../../lib/date";
+import { PageHeader } from "../../../components/app/PageHeader";
+import { Badge } from "../../../components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
+import { AttendanceTrendsCard } from "../../dashboard/components/AttendanceTrendsCard";
 
 export const AttendancePage: React.FC = () => {
-  const [showForm, setShowForm] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { data: attendanceLogs, isLoading, error } = useQuery({
     queryKey: ["attendance"],
@@ -18,81 +36,101 @@ export const AttendancePage: React.FC = () => {
     },
   });
 
-  return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Service Attendance</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Log and review headcount data across all services and events.
-          </p>
-        </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {showForm ? "Cancel Logging" : "Log Attendance"}
-        </Button>
-      </div>
+  const sortedLogs = useMemo(
+    () =>
+      attendanceLogs
+        ? [...attendanceLogs].sort(
+            (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
+          )
+        : [],
+    [attendanceLogs]
+  );
 
-      {showForm && (
-        <div className="animate-in slide-in-from-top-4 duration-300">
-          <AttendanceForm />
-        </div>
-      )}
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Attendance"
+        title="Service headcount"
+        description="Attendance log."
+        actions={
+          <Button size="lg" onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Log attendance
+          </Button>
+        }
+      />
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold tracking-tight">Recent Logs</h3>
+        <AttendanceTrendsCard />
+
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold tracking-tight">Recent log</h3>
+          <Badge variant="outline">{sortedLogs.length} entries</Badge>
+        </div>
 
         {isLoading ? (
-          <div className="glass p-12 flex justify-center items-center rounded-xl">
+          <div className="surface-card flex items-center justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <div className="glass p-8 text-center text-destructive rounded-xl">
+          <div className="surface-card rounded-xl p-8 text-center text-destructive">
             Failed to load attendance logs.
           </div>
-        ) : !attendanceLogs || attendanceLogs.length === 0 ? (
-          <div className="glass p-8 text-center rounded-xl border border-dashed border-muted-foreground/30 flex flex-col items-center">
-            <div className="bg-primary/10 p-3 rounded-full mb-3 text-primary">
+        ) : sortedLogs.length === 0 ? (
+          <div className="surface-card flex flex-col items-center rounded-xl border border-dashed border-muted-foreground/30 p-8 text-center">
+            <div className="mb-3 rounded-full bg-primary/10 p-3 text-primary">
               <BarChart2 className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-medium text-foreground">No Logs Yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-              Start tracking by clicking "Log Attendance" above to log Sunday services and midweek meetings.
+            <h3 className="text-lg font-medium text-foreground">No logs yet</h3>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              Record a service or event headcount to start the attendance log.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {attendanceLogs.map((log) => (
-              <div key={log.id || Math.random().toString()} className="glass p-5 rounded-2xl shadow-sm border border-white/60 bg-white/40 flex flex-col hover:bg-white/80 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 ease-out">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0 ring-4 ring-white">
-                    <Calendar className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground tracking-tight leading-none capitalize">
-                      {log.eventType.replace("_", " ")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
+          <div className="surface-card overflow-hidden p-2 sm:p-3">
+            <Table>
+              <TableHeader className="bg-accent/45">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Date</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Adults</TableHead>
+                  <TableHead>Children</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedLogs.map((log) => (
+                  <TableRow key={log.id ?? `${log.eventType}-${log.eventDate}`}>
+                    <TableCell className="font-medium text-foreground">
                       {formatDateOnly(log.eventDate)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-3 border-t border-slate-100 flex items-end justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    <p>Adults: <span className="text-foreground font-medium">{log.adultsCount ?? "-"}</span></p>
-                    <p>Children: <span className="text-foreground font-medium">{log.childrenCount ?? "-"}</span></p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Total</p>
-                    <p className="text-2xl font-bold tracking-tight leading-none text-primary">{log.headcount}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </TableCell>
+                    <TableCell className="capitalize">{log.eventType.replace("_", " ")}</TableCell>
+                    <TableCell>
+                      <span className="text-2xl font-semibold leading-none text-primary">{log.headcount}</span>
+                    </TableCell>
+                    <TableCell>{log.adultsCount ?? "-"}</TableCell>
+                    <TableCell>{log.childrenCount ?? "-"}</TableCell>
+                    <TableCell className="max-w-[280px] truncate text-muted-foreground">
+                      {log.notes || ".."}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Log attendance</DialogTitle>
+            <DialogDescription>Attendance entry.</DialogDescription>
+          </DialogHeader>
+          <AttendanceForm onDone={() => setIsCreateOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

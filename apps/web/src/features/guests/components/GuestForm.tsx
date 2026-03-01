@@ -13,10 +13,18 @@ import {
 } from "../../../components/ui/form";
 import { Input } from "../../../components/ui/input";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import { cn } from "../../../lib/utils";
+
+const guestIntentOptions = [
+  { value: "visitor", label: "Just visiting" },
+  { value: "maybe", label: "Maybe" },
+  { value: "joined", label: "I want to join" },
+] as const;
 
 export const GuestForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [guestIntent, setGuestIntent] = useState<(typeof guestIntentOptions)[number]["value"]>("visitor");
 
   const form = useForm<CreateGuestRequest>({
     // @ts-ignore
@@ -48,32 +56,35 @@ export const GuestForm: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4 text-center glass rounded-2xl animate-in fade-in zoom-in duration-300">
+      <div className="surface-card animate-in fade-in zoom-in duration-300 flex flex-col items-center justify-center space-y-4 p-8 text-center">
         <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-2">
           <CheckCircle2 className="h-8 w-8" />
         </div>
-        <h3 className="text-2xl font-bold tracking-tight">Welcome to Nehemiah CMS!</h3>
+        <h3 className="text-2xl font-bold tracking-tight">Guest saved</h3>
         <p className="text-muted-foreground max-w-sm">
-          Thank you for signing in. Your details have been securely saved.
-          We hope you enjoy the rest of the service.
+          {guestIntent === "joined"
+            ? "The guest is marked as joined and ready for follow-up."
+            : guestIntent === "maybe"
+              ? "The guest is marked as undecided and ready for follow-up."
+              : "The visitor details are now in the guest follow-up list and ready for the team to review."}
         </p>
         <Button
           className="mt-6"
           variant="outline"
           onClick={() => setIsSuccess(false)}
         >
-          Submit another guest
+          Add another guest
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="glass p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200/50 max-w-md w-full mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Welcome Guest!</h2>
+    <div className="surface-card mx-auto w-full max-w-md p-6 md:p-8">
+      <div className="mb-8 border-b border-border/60 pb-5">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Quick guest capture</h2>
         <p className="text-sm text-muted-foreground mt-1.5">
-          Please fill out this quick form so we can get to know you better.
+          Keep this short so it works well before, during, or just after service.
         </p>
       </div>
 
@@ -81,6 +92,27 @@ export const GuestForm: React.FC = () => {
       <Form {...form}>
         {/* @ts-ignore */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <FormLabel>Today&apos;s decision</FormLabel>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {guestIntentOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setGuestIntent(option.value)}
+                  className={cn(
+                    "rounded-2xl border px-3 py-3 text-sm font-medium transition-colors",
+                    guestIntent === option.value
+                      ? "border-secondary/30 bg-secondary/12 text-foreground"
+                      : "border-border/70 bg-white/70 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <FormField
             control={form.control}
             name="fullName"
@@ -123,14 +155,14 @@ export const GuestForm: React.FC = () => {
             )}
           />
 
-          <Button type="submit" className="w-full text-base py-6 font-semibold" disabled={isSubmitting}>
+          <Button type="submit" size="lg" className="w-full text-base font-semibold" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Saving...
               </>
             ) : (
-              "Submit Details"
+              "Save guest"
             )}
           </Button>
         </form>

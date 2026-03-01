@@ -3,10 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { GuestForm } from "../components/GuestForm";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { QrCode, ClipboardList, Loader2, UserPlus, Search, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { QrCode, Loader2, UserPlus, Search, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import { apiClient } from "../../../lib/api";
 import { Guest } from "@nehemiah/core/schemas";
 import { formatDateOnly } from "../../../lib/date";
+import { Badge } from "../../../components/ui/badge";
+import { PageHeader } from "../../../components/app/PageHeader";
 import {
   Table,
   TableBody,
@@ -23,11 +25,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
+import { ContactValue } from "../../../components/app/ContactValue";
 
 const ITEMS_PER_PAGE = 10;
 
 export const GuestsPage: React.FC = () => {
-  const [view, setView] = useState<"list" | "form">("list");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -73,44 +83,38 @@ export const GuestsPage: React.FC = () => {
   }, [searchQuery]);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">First-Time Guests</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Track visitors and promote them to full members.
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          {view === "list" ? (
-            <Button onClick={() => setView("form")} variant="secondary">
-              <QrCode className="mr-2 h-4 w-4" />
-              Open Quick Form
-            </Button>
-          ) : (
-            <Button onClick={() => setView("list")} variant="outline">
-              <ClipboardList className="mr-2 h-4 w-4" />
-              View Guest List
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Guests"
+        title="Guest follow-up"
+        description="Guest register."
+        actions={
+          <Button size="lg" variant="secondary" onClick={() => setIsCreateOpen(true)}>
+            <QrCode className="h-4 w-4" />
+            Quick form
+          </Button>
+        }
+      />
 
-      {view === "form" ? (
-        <div className="animate-in zoom-in-95 duration-300 py-8">
-          <GuestForm />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="glass p-6 rounded-2xl border border-white/60 min-h-[500px] flex flex-col">
-            <div className="flex items-center justify-between mb-6">
+      <div className="space-y-4">
+          <div className="surface-card min-h-[500px] p-6 sm:p-7 flex flex-col">
+            <div className="mb-6 flex flex-col gap-4 border-b border-border/60 pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold tracking-[-0.03em] text-foreground">Recent visitors</h3>
+                  <Badge variant="outline">{filteredGuests.length} guests</Badge>
+                </div>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  Sorted by most recent visit so follow-up stays timely.
+                </p>
+              </div>
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search guests by name, email, or phone..."
+                  placeholder="Search guests"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/50 border-white/40 focus-visible:ring-secondary/30"
+                  className="pl-10"
                 />
               </div>
             </div>
@@ -125,22 +129,22 @@ export const GuestsPage: React.FC = () => {
               </div>
             ) : filteredGuests.length === 0 ? (
               <div className="flex-1 flex flex-col justify-center items-center text-center">
-                <div className="bg-secondary/10 p-4 rounded-full mb-4">
-                  <UserPlus className="h-8 w-8 text-secondary opacity-50" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/12">
+                  <UserPlus className="h-7 w-7 text-secondary opacity-70" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground">Guest Tracker Empty</h3>
-                <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-                  {searchQuery ? "No guests match your search." : "Switch to the quick form to log new visitors, or have them scan a QR code holding the public link."}
+                <h3 className="text-lg font-medium text-foreground">No guests found</h3>
+                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                  {searchQuery ? "Try another name, email address, or phone number." : "Use Quick form when you need to record a visitor."}
                 </p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col">
-                <div className="rounded-xl border border-white/40 overflow-hidden bg-white/40">
+                <div className="overflow-hidden rounded-[1.25rem] border border-border/70 bg-white/70">
                   <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader className="bg-accent/45">
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="w-[280px]">Guest Name</TableHead>
-                        <TableHead>Contact Info</TableHead>
+                        <TableHead>Contact</TableHead>
                         <TableHead>Date Visited</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -148,20 +152,22 @@ export const GuestsPage: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       {paginatedGuests.map((guest) => (
-                        <TableRow key={guest.id} className="hover:bg-white/60 transition-colors">
+                        <TableRow key={guest.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center space-x-3">
-                              <div className="h-9 w-9 bg-secondary/10 text-secondary rounded-full flex items-center justify-center shrink-0 ring-2 ring-white">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/12 text-secondary ring-4 ring-white/70">
                                 <UserPlus className="h-4 w-4" />
                               </div>
-                              <span className="truncate max-w-[180px] font-semibold text-foreground/90">{guest.fullName}</span>
+                              <div className="min-w-0">
+                                <span className="block max-w-[180px] truncate font-semibold text-foreground/90">{guest.fullName}</span>
+                                <span className="mt-1 block text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                  Visitor record
+                                </span>
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-col text-sm">
-                              <span className="text-foreground/80">{guest.email || "-"}</span>
-                              <span className="text-muted-foreground">{guest.phone || "-"}</span>
-                            </div>
+                            <ContactValue phone={guest.phone} email={guest.email} />
                           </TableCell>
                           <TableCell>
                             <span className="text-sm text-muted-foreground font-medium">
@@ -169,8 +175,12 @@ export const GuestsPage: React.FC = () => {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-xs font-semibold text-muted-foreground bg-slate-100/80 px-2.5 py-1 rounded-full uppercase tracking-wider inline-block border border-slate-200/50 shadow-sm">
-                              {guest.status.replace("_", " ")}
+                            <span className={`inline-block rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                              guest.status === "joined"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-border/80 bg-accent/60 text-muted-foreground"
+                            }`}>
+                              {guest.status === "joined" ? "Joined" : "Visitor"}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
@@ -202,7 +212,7 @@ export const GuestsPage: React.FC = () => {
                   <div className="flex items-center justify-between mt-6 px-2">
                     <p className="text-sm text-muted-foreground font-medium">
                       Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-                      {Math.min(currentPage * ITEMS_PER_PAGE, filteredGuests.length)} of {filteredGuests.length} guests
+                      {Math.min(currentPage * ITEMS_PER_PAGE, filteredGuests.length)} of {filteredGuests.length}
                     </p>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -231,8 +241,17 @@ export const GuestsPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+      </div>
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Quick form</DialogTitle>
+            <DialogDescription>Guest entry.</DialogDescription>
+          </DialogHeader>
+          <GuestForm />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

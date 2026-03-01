@@ -46,26 +46,26 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <Card className="glass shadow-2xl border-white/5">
+    <Card className="overflow-hidden border-white/70 bg-white/90">
       <CardHeader>
-        <CardTitle className="text-2xl">Sign In</CardTitle>
+        <CardTitle className="text-[1.75rem]">Sign in</CardTitle>
         <CardDescription>
-          Enter your church credentials to access the manager.
+          Use your staff credentials to open the church workspace.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="bg-destructive/15 border border-destructive/20 text-destructive text-sm p-3 rounded-lg flex items-center space-x-2">
+            <div className="flex items-center space-x-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
               <span>{error}</span>
             </div>
           )}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email Address</label>
+            <label className="text-sm font-medium">Email address</label>
             <Input
               type="email"
-              placeholder="name@church.com"
+              placeholder="office@church.org"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -73,9 +73,7 @@ export const LoginPage: React.FC = () => {
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Password</label>
-            </div>
+            <label className="text-sm font-medium">Password</label>
             <Input
               type="password"
               placeholder="••••••••"
@@ -89,16 +87,17 @@ export const LoginPage: React.FC = () => {
         <CardFooter>
           <Button
             type="submit"
+            size="lg"
             className="w-full"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing In...
+                Signing in...
               </>
             ) : (
-              "Sign In"
+              "Enter workspace"
             )}
           </Button>
         </CardFooter>

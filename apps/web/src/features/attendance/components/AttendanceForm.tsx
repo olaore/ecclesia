@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAttendanceSchema, CreateAttendanceRequest } from "@nehemiah/core/schemas";
@@ -22,26 +22,34 @@ import {
 } from "../../../components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDateInputValue, parseDateInputValue } from "../../../lib/date";
+import { formatDateInputValue, formatDateOnly, parseDateInputValue } from "../../../lib/date";
+import { Textarea } from "../../../components/ui/textarea";
+import { ConfirmAction } from "../../../components/app/ConfirmAction";
 
-export const AttendanceForm: React.FC = () => {
+interface AttendanceFormProps {
+  onDone?: () => void;
+}
+
+export const AttendanceForm: React.FC<AttendanceFormProps> = ({ onDone }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState<CreateAttendanceRequest | null>(null);
   const queryClient = useQueryClient();
 
   const form = useForm<CreateAttendanceRequest>({
     // @ts-ignore
     resolver: zodResolver(createAttendanceSchema),
     defaultValues: {
-      eventType: "sunday_service",
-      eventDate: new Date(),
-      headcount: 0,
-      adultsCount: 0,
-      childrenCount: 0,
+      eventType: undefined,
+      eventDate: undefined,
+      headcount: undefined,
+      adultsCount: undefined,
+      childrenCount: undefined,
       notes: "",
     },
   });
 
-  const onSubmit = async (data: CreateAttendanceRequest) => {
+  const saveAttendance = async (data: CreateAttendanceRequest) => {
     setIsSubmitting(true);
     try {
       console.log("Submitting attendance data:", data);
@@ -51,6 +59,9 @@ export const AttendanceForm: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendance-trends"] });
       form.reset();
+      setPendingSubmission(null);
+      setConfirmOpen(false);
+      onDone?.();
     } catch (error) {
       console.error("Failed to submit attendance:", error);
     } finally {
@@ -58,11 +69,16 @@ export const AttendanceForm: React.FC = () => {
     }
   };
 
+  const previewLabel = useMemo(() => {
+    if (!pendingSubmission) return "";
+    return `${pendingSubmission.eventType.replace("_", " ")} on ${formatDateOnly(pendingSubmission.eventDate)}`;
+  }, [pendingSubmission]);
+
   return (
-    <div className="glass p-6 rounded-xl border">
-      <div className="mb-6">
+    <div className="surface-card p-6 sm:p-7">
+      <div className="mb-6 border-b border-border/60 pb-5">
         <h2 className="text-xl font-bold tracking-tight">Log Attendance</h2>
-        <p className="text-sm text-muted-foreground">Record headcount for recent services or events.</p>
+        <p className="text-sm text-muted-foreground">Record the turnout for a service or ministry event.</p>
       </div>
 
       {/* @ts-ignore */}
@@ -76,7 +92,7 @@ export const AttendanceForm: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Event Type <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || "sunday_service"}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
@@ -127,7 +143,8 @@ export const AttendanceForm: React.FC = () => {
                       type="number"
                       min="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseInt(e.target.value, 10))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -146,8 +163,8 @@ export const AttendanceForm: React.FC = () => {
                       type="number"
                       min="0"
                       {...field}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || null)}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseInt(e.target.value, 10))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -166,8 +183,8 @@ export const AttendanceForm: React.FC = () => {
                       type="number"
                       min="0"
                       {...field}
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || null)}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseInt(e.target.value, 10))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -183,16 +200,66 @@ export const AttendanceForm: React.FC = () => {
               <FormItem>
                 <FormLabel>Additional Notes</FormLabel>
                 <FormControl>
-                  <Input placeholder="E.g., Special guest minister present..." {...field} value={field.value || ""} />
+                  <Textarea placeholder="Optional context such as special guests, combined services, or unusual turnout." {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Submit Attendance"}
-          </Button>
+          <div className="flex justify-end">
+            <ConfirmAction
+              open={confirmOpen}
+              onOpenChange={setConfirmOpen}
+              title="Confirm attendance log"
+              description={pendingSubmission ? `Save ${previewLabel}?` : "Review the entry before saving."}
+              disabled={!pendingSubmission || isSubmitting}
+              confirmLabel="Save"
+              cancelLabel="Edit"
+              onConfirm={() => {
+                if (!pendingSubmission) return
+                return saveAttendance(pendingSubmission)
+              }}
+              details={
+                pendingSubmission ? (
+                  <div className="space-y-2 rounded-2xl border border-border/70 bg-accent/45 p-3 text-sm">
+                    <p className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="font-semibold text-foreground">{pendingSubmission.headcount}</span>
+                    </p>
+                    <p className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Adults</span>
+                      <span className="text-foreground">{pendingSubmission.adultsCount ?? ".."}</span>
+                    </p>
+                    <p className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Children</span>
+                      <span className="text-foreground">{pendingSubmission.childrenCount ?? ".."}</span>
+                    </p>
+                  </div>
+                ) : null
+              }
+              trigger={
+                <Button
+                  type="button"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  disabled={isSubmitting}
+                  onClick={async () => {
+                    const isValid = await form.trigger();
+                    if (!isValid) {
+                      setConfirmOpen(false);
+                      return;
+                    }
+
+                    setPendingSubmission(form.getValues() as CreateAttendanceRequest);
+                    setConfirmOpen(true);
+                  }}
+                >
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Review attendance"}
+                </Button>
+              }
+            />
+          </div>
         </form>
       </Form>
     </div>

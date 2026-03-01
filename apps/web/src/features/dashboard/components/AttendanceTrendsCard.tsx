@@ -17,18 +17,34 @@ import {
   CardTitle,
 } from "../../../components/ui/card";
 import { useAttendanceTrends } from "../api/dashboardEndpoints";
-import { Loader2 } from "lucide-react";
+import { Loader2, TrendingUp } from "lucide-react";
+
+const chartColors = {
+  sunday: "hsl(224 42% 22%)",
+  midweek: "hsl(24 78% 50%)",
+  grid: "hsl(220 10% 76% / 0.28)",
+  text: "hsl(220 12% 42%)",
+  tooltipBg: "rgba(255, 255, 255, 0.96)",
+  tooltipBorder: "rgba(219, 211, 201, 0.9)",
+};
 
 export const AttendanceTrendsCard: React.FC = () => {
   const { data: trends, isLoading, error } = useAttendanceTrends();
 
   return (
-    <Card className="glass shadow-xl col-span-1 lg:col-span-2 flex flex-col h-full border-white/5">
-      <CardHeader>
-        <CardTitle>Attendance Trends</CardTitle>
-        <CardDescription>
-          Monthly average comparison between Sunday Services and Midweek Services.
-        </CardDescription>
+    <Card className="col-span-1 h-[34rem] min-h-0 border-white/70 bg-white/90 lg:col-span-2">
+      <CardHeader className="border-b border-border/60">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <CardTitle>Attendance trends</CardTitle>
+            <CardDescription>
+              Sunday and midweek averages by month.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 min-h-[300px] flex items-center justify-center">
         {isLoading ? (
@@ -53,28 +69,28 @@ export const AttendanceTrendsCard: React.FC = () => {
                   bottom: 0,
                 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: chartColors.text, fontSize: 12 }}
                   dy={10}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: chartColors.text, fontSize: 12 }}
                 />
                 <Tooltip
-                  cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
+                  cursor={{ fill: "rgba(244, 238, 231, 0.8)" }}
                   contentStyle={{
-                    backgroundColor: "hsl(var(--background))",
-                    borderColor: "hsl(var(--border))",
-                    borderRadius: "0.5rem",
-                    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                    backgroundColor: chartColors.tooltipBg,
+                    borderColor: chartColors.tooltipBorder,
+                    borderRadius: "1rem",
+                    boxShadow: "0 16px 38px rgba(15, 23, 42, 0.12)",
                   }}
-                  itemStyle={{ color: "hsl(var(--foreground))" }}
+                  itemStyle={{ color: "hsl(224 30% 16%)" }}
                 />
                 <Legend
                   wrapperStyle={{ paddingTop: "20px" }}
@@ -82,16 +98,16 @@ export const AttendanceTrendsCard: React.FC = () => {
                 />
                 <Bar
                   dataKey="sundayAvg"
-                  name="Sunday Average"
-                  fill="hsl(var(--primary))"
-                  radius={[4, 4, 0, 0]}
+                  name="Sunday"
+                  fill={chartColors.sunday}
+                  radius={[8, 8, 0, 0]}
                   maxBarSize={40}
                 />
                 <Bar
                   dataKey="midweekAvg"
-                  name="Midweek Average"
-                  fill="hsl(var(--secondary))"
-                  radius={[4, 4, 0, 0]}
+                  name="Midweek"
+                  fill={chartColors.midweek}
+                  radius={[8, 8, 0, 0]}
                   maxBarSize={40}
                 />
               </BarChart>

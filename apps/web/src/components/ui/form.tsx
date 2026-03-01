@@ -142,7 +142,11 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : props.children
+  const rawBody = error ? String(error?.message ?? "") : props.children
+  const body =
+    typeof rawBody === "string" && rawBody.startsWith("Invalid input")
+      ? "Required"
+      : rawBody
 
   if (!body) {
     return null

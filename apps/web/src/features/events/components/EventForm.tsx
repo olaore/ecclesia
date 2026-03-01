@@ -26,8 +26,13 @@ import {
   formatLocalDateTimeInputValue,
   parseLocalDateTimeInputValue,
 } from "../../../lib/date";
+import { Textarea } from "../../../components/ui/textarea";
 
-export const EventForm: React.FC = () => {
+interface EventFormProps {
+  onDone?: () => void;
+}
+
+export const EventForm: React.FC<EventFormProps> = ({ onDone }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -37,10 +42,10 @@ export const EventForm: React.FC = () => {
     defaultValues: {
       title: "",
       description: "",
-      eventType: "special_service",
-      startDate: new Date(),
-      endDate: new Date(),
-      visibility: "public",
+      eventType: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      visibility: undefined,
     },
   });
 
@@ -53,6 +58,7 @@ export const EventForm: React.FC = () => {
       // await apiClient("/events", { method: "POST", body: JSON.stringify(data) });
       queryClient.invalidateQueries({ queryKey: ["events"] });
       form.reset();
+      onDone?.();
     } catch (error) {
       console.error("Failed to submit event:", error);
     } finally {
@@ -61,10 +67,10 @@ export const EventForm: React.FC = () => {
   };
 
   return (
-    <div className="glass p-6 rounded-xl border">
-      <div className="mb-6">
+    <div className="surface-card p-6 sm:p-7">
+      <div className="mb-6 border-b border-border/60 pb-5">
         <h2 className="text-xl font-bold tracking-tight">Schedule Event</h2>
-        <p className="text-sm text-muted-foreground">Add a new program or meeting to the church calendar.</p>
+        <p className="text-sm text-muted-foreground">Add a service, program, or internal meeting to the calendar.</p>
       </div>
 
       {/* @ts-ignore */}
@@ -92,7 +98,7 @@ export const EventForm: React.FC = () => {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input placeholder="Brief details about the event..." {...field} value={field.value || ""} />
+                  <Textarea placeholder="Brief details, theme, speaker, or any note the team should see on the schedule." {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,7 +112,7 @@ export const EventForm: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Event Type <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
@@ -131,7 +137,7 @@ export const EventForm: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Visibility <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select visibility" />
@@ -191,9 +197,11 @@ export const EventForm: React.FC = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scheduling...</> : "Schedule Event"}
-          </Button>
+          <div className="flex justify-end">
+            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scheduling...</> : "Save event"}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

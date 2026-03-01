@@ -1,15 +1,32 @@
-import React, { useState } from "react";
-import { format, setMonth, setDate } from "date-fns";
+import React, { useMemo, useState } from "react";
+import {
+  addMonths,
+  endOfWeek,
+  format,
+  isSameDay,
+  isWithinInterval,
+  setDate,
+  setMonth,
+  startOfWeek,
+} from "date-fns";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "../../../components/ui/card";
 import { useCelebrants } from "../api/dashboardEndpoints";
 import { Loader2, Cake, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "../../../components/ui/tabs";
+import { Calendar } from "../../../components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
 
 interface CelebrantData {
   id: string;
@@ -20,77 +37,169 @@ interface CelebrantData {
   day: number;
 }
 
+type ViewMode = "today" | "week" | "month";
+
 export const CelebrantsWidget: React.FC = () => {
-  const currentMonth = new Date().getMonth() + 1; // 1-12
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const { data: celebrants, isLoading, error } = useCelebrants(selectedMonth);
+  const today = new Date();
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const [monthCursor, setMonthCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const activeMonth = viewMode === "month" ? monthCursor : today;
+  const { data: celebrants, isLoading, error } = useCelebrants(activeMonth.getMonth() + 1);
 
-  const handlePrevMonth = () => {
-    setSelectedMonth((prev) => (prev === 1 ? 12 : prev - 1));
-  };
+  const celebrantsWithDate = useMemo(() => {
+    return (celebrants || []).map((celeb) => ({
+      ...celeb,
+      date: setDate(setMonth(new Date(activeMonth.getFullYear(), 0, 1), celeb.month - 1), celeb.day),
+    }));
+  }, [celebrants, activeMonth]);
 
-  const handleNextMonth = () => {
-    setSelectedMonth((prev) => (prev === 12 ? 1 : prev + 1));
-  };
+  const weekCelebrants = useMemo(() => {
+    const interval = {
+      start: startOfWeek(today, { weekStartsOn: 1 }),
+      end: endOfWeek(today, { weekStartsOn: 1 }),
+    };
 
-  const monthName = format(setMonth(new Date(), selectedMonth - 1), "MMMM");
+    return celebrantsWithDate.filter((celeb) => isWithinInterval(celeb.date, interval));
+  }, [celebrantsWithDate, today]);
+
+  const todayCelebrants = useMemo(
+    () => celebrantsWithDate.filter((celeb) => isSameDay(celeb.date, today)),
+    [celebrantsWithDate, today]
+  );
+
+  const celebrantsByDay = useMemo(() => {
+    const grouped = new Map<string, CelebrantData[]>();
+
+    celebrantsWithDate.forEach((celeb) => {
+      const key = format(celeb.date, "yyyy-MM-dd");
+      const group = grouped.get(key) || [];
+      group.push(celeb);
+      grouped.set(key, group);
+    });
+
+    return grouped;
+  }, [celebrantsWithDate]);
+
+  const selectedDayCelebrants = selectedDay
+    ? celebrantsByDay.get(format(selectedDay, "yyyy-MM-dd")) || []
+    : [];
+
+  const monthDaySet = new Set(celebrantsWithDate.map((celeb) => format(celeb.date, "yyyy-MM-dd")));
+
+  const listForMode = viewMode === "today" ? todayCelebrants : weekCelebrants;
 
   return (
-    <Card className="glass shadow-xl col-span-1 flex flex-col h-full border-white/5">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <div className="space-y-1">
-          <CardTitle>Celebrants</CardTitle>
-          <CardDescription>Birthdays & Anniversaries</CardDescription>
-        </div>
-        <div className="flex items-center space-x-1">
-          <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium w-20 text-center">{monthName}</span>
-          <Button variant="ghost" size="icon" onClick={handleNextMonth} className="h-8 w-8">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+    <Card className="col-span-1 flex h-[34rem] min-h-0 flex-col overflow-hidden border-white/70 bg-white/90">
+      <CardHeader className="gap-3 border-b border-border/60 pb-4">
+        <CardTitle>Birthdays & Anniversaries</CardTitle>
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+          <TabsList className="rounded-2xl bg-accent/70 p-1">
+            <TabsTrigger value="today">Today</TabsTrigger>
+            <TabsTrigger value="week">This week</TabsTrigger>
+            <TabsTrigger value="month">Month</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {viewMode === "month" ? (
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="icon-sm" onClick={() => setMonthCursor((prev) => addMonths(prev, -1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">{format(monthCursor, "MMMM yyyy")}</span>
+            <Button variant="ghost" size="icon-sm" onClick={() => setMonthCursor((prev) => addMonths(prev, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : null}
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      <CardContent className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-4">
         {isLoading ? (
-          <div className="h-32 flex items-center justify-center">
+          <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <div className="text-destructive text-sm text-center py-8">
+          <div className="py-8 text-center text-sm text-destructive">
             Failed to load celebrants.
           </div>
-        ) : !celebrants || celebrants.length === 0 ? (
-          <div className="text-muted-foreground text-sm text-center py-8">
-            No celebrants in {monthName}.
+        ) : viewMode === "month" ? (
+          <div className="flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-accent/18">
+            <div className="min-h-0 flex-1 overflow-auto p-2">
+              <Calendar
+                month={monthCursor}
+                onMonthChange={setMonthCursor}
+                showOutsideDays={false}
+                selected={selectedDay || undefined}
+                disabled={(date) => !monthDaySet.has(format(date, "yyyy-MM-dd"))}
+                modifiers={{
+                  highlighted: (date) => monthDaySet.has(format(date, "yyyy-MM-dd")),
+                }}
+                modifiersClassNames={{
+                  highlighted: "rounded-xl bg-secondary/12 text-foreground font-medium",
+                }}
+                onDayClick={(date) => {
+                  if (!monthDaySet.has(format(date, "yyyy-MM-dd"))) return;
+                  setSelectedDay(date);
+                }}
+                className="w-full"
+                classNames={{
+                  root: "w-full",
+                  months: "w-full",
+                  month: "w-full gap-3",
+                  table: "w-full",
+                  weekday: "text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground",
+                  week: "mt-1.5 flex w-full",
+                  day: "p-0.5",
+                  day_button:
+                    "relative h-10 w-full rounded-xl text-sm data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground",
+                  today: "rounded-xl border border-secondary/25 bg-secondary/10 text-foreground",
+                  disabled: "opacity-25",
+                }}
+              />
+            </div>
+            <p className="px-3 pb-2 text-xs text-muted-foreground">
+              Select a highlighted day to view celebrants.
+            </p>
+          </div>
+        ) : listForMode.length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            {viewMode === "today" ? "No celebrants today." : "No celebrants this week."}
           </div>
         ) : (
-          <div className="space-y-3">
-            {celebrants.map((celeb: CelebrantData) => {
+          <div className="h-full space-y-3 overflow-y-auto pr-1">
+            {listForMode.map((celeb) => {
               const isBirthday = celeb.celebrationType === "birthday";
-              const dateObj = setDate(setMonth(new Date(), celeb.month - 1), celeb.day);
+              const isToday = isSameDay(celeb.date, today);
 
               return (
                 <div
                   key={`${celeb.id}-${celeb.celebrationType}`}
-                  className="group flex items-start space-x-3.5 p-3.5 rounded-2xl bg-white/40 border border-white/60 hover:bg-white/80 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 ease-out"
+                  className={`group flex items-start space-x-3.5 rounded-[1.25rem] border p-4 transition-all duration-200 ${
+                    isToday
+                      ? "border-secondary/25 bg-secondary/10"
+                      : "border-border/70 bg-accent/45 hover:bg-white hover:shadow-[0_8px_20px_rgba(15,23,42,0.06)]"
+                  }`}
                 >
-                  <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${isBirthday ? 'bg-primary/10 text-primary group-hover:bg-primary/20' : 'bg-secondary/10 text-secondary group-hover:bg-secondary/20'}`}>
+                  <div className={`rounded-xl p-2.5 shrink-0 ${isBirthday ? "bg-primary/10 text-primary" : "bg-secondary/12 text-secondary"}`}>
                     {isBirthday ? <Cake className="h-4 w-4" /> : <Heart className="h-4 w-4" />}
                   </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="text-sm font-semibold tracking-tight truncate text-foreground/90">{celeb.fullName}</p>
-                    <p className="text-xs font-medium text-muted-foreground/80 capitalize flex items-center space-x-1.5 mt-0.5">
-                      <span>{celeb.type.replace('_', ' ')}</span>
-                      <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/50"></span>
-                      <span>{isBirthday ? "Birthday" : "Anniversary"}</span>
-                    </p>
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-semibold tracking-tight text-foreground/90">{celeb.fullName}</p>
+                      {isToday ? <Badge variant="secondary">Today</Badge> : null}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <Badge variant={isBirthday ? "default" : "secondary"} className="normal-case tracking-[0.08em]">
+                        {isBirthday ? "Birthday" : "Anniversary"}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end justify-center shrink-0 text-right pt-0.5 pr-1">
-                    <span className="text-lg font-medium tabular-nums tracking-tighter leading-none text-foreground/90">{format(dateObj, "dd")}</span>
-                    <span className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest mt-1">{format(dateObj, "MMM")}</span>
+                  <div className="shrink-0 pr-1 pt-0.5 text-right">
+                    <span className="text-lg font-medium tracking-tighter text-foreground/90">{format(celeb.date, "dd")}</span>
+                    <span className="mt-1 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                      {format(celeb.date, "MMM")}
+                    </span>
                   </div>
                 </div>
               );
@@ -98,6 +207,26 @@ export const CelebrantsWidget: React.FC = () => {
           </div>
         )}
       </CardContent>
+
+      <Dialog open={Boolean(selectedDay)} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDay ? format(selectedDay, "EEEE, d MMMM") : "Celebrants"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {selectedDayCelebrants.map((celeb) => (
+              <div key={`${celeb.id}-${celeb.celebrationType}`} className="flex items-center justify-between rounded-2xl border border-border/70 bg-accent/40 px-4 py-3">
+                <span className="font-medium text-foreground">{celeb.fullName}</span>
+                <Badge variant={celeb.celebrationType === "birthday" ? "default" : "secondary"} className="normal-case tracking-[0.08em]">
+                  {celeb.celebrationType === "birthday" ? "Birthday" : "Anniversary"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

@@ -3,52 +3,92 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Clean White Background */
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
+  --color-background: hsl(36 33% 97%);
+  --color-foreground: hsl(224 30% 16%);
 
   --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-card-foreground: hsl(224 30% 16%);
 
   --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
+  --color-popover-foreground: hsl(224 30% 16%);
 
-  /* Deep Indigo Primary (Premium & Trustworthy) */
-  --color-primary: hsl(235 85% 55%);
+  --color-primary: hsl(224 42% 22%);
   --color-primary-foreground: hsl(210 40% 98%);
 
-  /* Rich Amber/Gold Secondary (Elegant Accent) */
-  --color-secondary: hsl(38 92% 50%);
-  --color-secondary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(24 78% 50%);
+  --color-secondary-foreground: hsl(24 100% 98%);
 
-  --color-muted: hsl(220 14% 96%);
-  --color-muted-foreground: hsl(220 9% 46%);
+  --color-muted: hsl(35 24% 92%);
+  --color-muted-foreground: hsl(220 12% 42%);
 
-  --color-accent: hsl(220 14% 96%);
-  --color-accent-foreground: hsl(222.2 84% 4.9%);
+  --color-accent: hsl(34 32% 94%);
+  --color-accent-foreground: hsl(224 30% 16%);
 
   --color-destructive: hsl(348 83% 47%);
   --color-destructive-foreground: hsl(210 40% 98%);
 
-  --color-border: hsl(220 13% 91%);
-  --color-input: hsl(220 13% 91%);
-  --color-ring: hsl(235 85% 55%);
+  --color-border: hsl(35 18% 86%);
+  --color-input: hsl(35 18% 86%);
+  --color-ring: hsl(224 42% 22%);
 
-  --radius: 0.85rem;
+  --radius: 1rem;
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
   * {
     @apply border-border;
   }
+  html {
+    @apply scroll-smooth;
+  }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20;
+    @apply min-h-screen bg-background text-foreground antialiased selection:bg-secondary/20 selection:text-foreground;
+    background-image:
+      radial-gradient(circle at top left, hsl(34 88% 83% / 0.18), transparent 24rem),
+      radial-gradient(circle at top right, hsl(221 55% 78% / 0.18), transparent 22rem),
+      linear-gradient(180deg, hsl(42 38% 98%), hsl(34 26% 95%));
+  }
+  #root {
+    @apply min-h-screen;
   }
 }
 
-.glass {
-  @apply backdrop-blur-2xl bg-white/70 border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5 transition-all duration-300;
+@layer utilities {
+  .glass {
+    @apply border border-white/65 bg-white/78 shadow-[0_10px_28px_rgba(30,41,59,0.06)] backdrop-blur-xl;
+  }
+
+  .surface-card {
+    @apply rounded-[1.5rem] border border-white/70 bg-white/88 shadow-[0_8px_24px_rgba(17,24,39,0.06)];
+  }
+
+  .surface-subtle {
+    @apply rounded-[1.25rem] border border-border/80 bg-white/60;
+  }
+
+  .hairline {
+    @apply border-white/70;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(220 10% 70%);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
