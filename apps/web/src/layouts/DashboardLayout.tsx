@@ -47,8 +47,8 @@ export const DashboardLayout: React.FC = () => {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 w-64 glass z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 w-64 glass z-50 transform transition-transform duration-500 ease-in-out lg:relative lg:translate-x-0 border-r border-white/40",
+        isSidebarOpen ? "translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)]" : "-translate-x-full"
       )}>
         <div className="h-full flex flex-col p-4">
           <div className="flex items-center justify-between mb-8 px-2">
@@ -66,13 +66,16 @@ export const DashboardLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors",
+                  "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
                   location.pathname.startsWith(item.path)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 font-semibold"
+                    : "text-muted-foreground hover:bg-slate-100/80 hover:text-foreground font-medium"
                 )}
                 onClick={() => setIsSidebarOpen(false)}
               >
+                {location.pathname.startsWith(item.path) && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
+                )}
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
               </Link>
@@ -105,8 +108,10 @@ export const DashboardLayout: React.FC = () => {
           <h1 className="ml-4 text-xl font-bold">Dashboard</h1>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 lg:p-8">
-          <Outlet />
+        <main className="flex-1 overflow-auto p-4 lg:p-8 bg-slate-50/30">
+          <div className="mx-auto max-w-7xl animate-in fade-in zoom-in-95 duration-500 ease-out fill-mode-both">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

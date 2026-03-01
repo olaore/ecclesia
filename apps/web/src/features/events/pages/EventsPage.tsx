@@ -40,7 +40,7 @@ export const EventsPage: React.FC = () => {
         {/* Left Column: Calendar UI / List */}
         <div className={`space-y-4 ${showForm ? "lg:col-span-2" : "lg:col-span-3"}`}>
 
-          <div className="glass p-6 rounded-xl border border-slate-200/50 min-h-[400px]">
+          <div className="glass p-6 sm:p-8 rounded-2xl border border-white/60 min-h-[400px]">
             <h3 className="text-lg font-semibold tracking-tight mb-4 text-foreground flex items-center">
               <CalendarIcon className="h-5 w-5 mr-2 text-primary" />
               Upcoming Schedule
@@ -69,11 +69,11 @@ export const EventsPage: React.FC = () => {
                   const eDate = new Date(event.endDate);
 
                   return (
-                    <div key={event.id} className="group relative flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-slate-100 hover:border-primary/20 hover:bg-slate-50/50 transition-colors">
+                    <div key={event.id} className="group relative flex flex-col sm:flex-row gap-5 p-5 rounded-2xl border border-white/40 bg-white/40 hover:bg-white/80 hover:scale-[1.01] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 ease-out">
                       {/* Date Block */}
                       <div className="flex flex-col items-center justify-center min-w-16 px-2 py-1 bg-primary/5 rounded-lg text-primary self-start sm:self-center">
                         <span className="text-xs font-semibold uppercase tracking-wider">{format(sDate, "MMM")}</span>
-                        <span className="text-2xl font-bold leading-none my-0.5">{format(sDate, "dd")}</span>
+                        <span className="text-3xl font-black leading-none my-0.5">{format(sDate, "dd")}</span>
                       </div>
 
                       {/* Content */}

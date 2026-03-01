@@ -57,9 +57,9 @@ export const MembersPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {members.map((member) => (
-                <div key={member.id} className="glass p-4 rounded-xl shadow-sm border border-slate-200/50 flex flex-col hover:border-primary/30 transition-colors">
+                <div key={member.id} className="glass p-5 rounded-2xl border-white/60 bg-white/40 flex flex-col hover:bg-white/80 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 ease-out">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
+                    <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0 ring-4 ring-white">
                       <User className="h-5 w-5" />
                     </div>
                     <div>

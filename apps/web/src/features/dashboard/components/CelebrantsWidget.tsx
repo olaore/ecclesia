@@ -75,7 +75,7 @@ export const CelebrantsWidget: React.FC = () => {
               return (
                 <div
                   key={`${celeb.id}-${celeb.celebrationType}`}
-                  className="group flex items-start space-x-3.5 p-3 rounded-2xl bg-card/40 border border-white/5 hover:bg-card hover:border-white/10 hover:shadow-sm transition-all duration-200"
+                  className="group flex items-start space-x-3.5 p-3.5 rounded-2xl bg-white/40 border border-white/60 hover:bg-white/80 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 ease-out"
                 >
                   <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${isBirthday ? 'bg-primary/10 text-primary group-hover:bg-primary/20' : 'bg-secondary/10 text-secondary group-hover:bg-secondary/20'}`}>
                     {isBirthday ? <Cake className="h-4 w-4" /> : <Heart className="h-4 w-4" />}
