@@ -32,7 +32,7 @@ export const AttendanceTrendsCard: React.FC = () => {
   const { data: trends, isLoading, error } = useAttendanceTrends();
 
   return (
-    <Card className="col-span-1 h-[34rem] min-h-0 border-white/70 bg-white/90 lg:col-span-2">
+    <Card className="col-span-1 h-136 min-h-0 border-white/70 bg-white/90 lg:col-span-2">
       <CardHeader className="border-b border-border/60">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">

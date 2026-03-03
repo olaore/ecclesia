@@ -90,7 +90,7 @@ export const CelebrantsWidget: React.FC = () => {
   const listForMode = viewMode === "today" ? todayCelebrants : weekCelebrants;
 
   return (
-    <Card className="col-span-1 flex h-[34rem] min-h-0 flex-col overflow-hidden border-white/70 bg-white/90">
+    <Card className="col-span-1 flex h-136 min-h-0 flex-col overflow-hidden border-white/70 bg-white/90">
       <CardHeader className="gap-3 border-b border-border/60 pb-4">
         <CardTitle>Birthdays & Anniversaries</CardTitle>
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
@@ -175,11 +175,10 @@ export const CelebrantsWidget: React.FC = () => {
               return (
                 <div
                   key={`${celeb.id}-${celeb.celebrationType}`}
-                  className={`group flex items-start space-x-3.5 rounded-[1.25rem] border p-4 transition-all duration-200 ${
-                    isToday
+                  className={`group flex items-start space-x-3.5 rounded-[1.25rem] border p-4 transition-all duration-200 ${isToday
                       ? "border-secondary/25 bg-secondary/10"
                       : "border-border/70 bg-accent/45 hover:bg-white hover:shadow-[0_8px_20px_rgba(15,23,42,0.06)]"
-                  }`}
+                    }`}
                 >
                   <div className={`rounded-xl p-2.5 shrink-0 ${isBirthday ? "bg-primary/10 text-primary" : "bg-secondary/12 text-secondary"}`}>
                     {isBirthday ? <Cake className="h-4 w-4" /> : <Heart className="h-4 w-4" />}

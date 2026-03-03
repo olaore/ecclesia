@@ -4,13 +4,24 @@ import { UserRole } from "@nehemiah/core/schemas";
 
 export const verifyJWT = (secret: string) => jwt({ secret, alg: "HS256" });
 
-export const hasRole = (allowedRoles: UserRole[]) => {
+export const userHasRole = (
+  role: UserRole | undefined,
+  allowedRoles: readonly UserRole[]
+) => Boolean(role && allowedRoles.includes(role));
+
+export const hasRole = (
+  allowedRoles: readonly UserRole[],
+  options?: { message?: string }
+) => {
   return async (c: Context, next: Next) => {
     const payload = c.get("jwtPayload") as { role?: string; unitId?: string };
     const userRole = payload?.role as UserRole | undefined;
 
-    if (!userRole || !allowedRoles.includes(userRole)) {
-      return c.json({ success: false, error: "Forbidden: Insufficient permissions" }, 403);
+    if (!userHasRole(userRole, allowedRoles)) {
+      return c.json(
+        { success: false, error: options?.message ?? "Forbidden: Insufficient permissions" },
+        403
+      );
     }
     await next();
   };

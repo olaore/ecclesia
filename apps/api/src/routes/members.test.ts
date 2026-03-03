@@ -97,7 +97,7 @@ describe("Members CRUD API", () => {
 
   // ── CREATE ──────────────────────────────────────────────────────
 
-  test("POST /api/v1/members — creates member + audit log", async () => {
+  test("POST /api/v1/members - creates member + audit log", async () => {
     const token = await adminToken();
     const res = await createMember(token);
 
@@ -116,7 +116,7 @@ describe("Members CRUD API", () => {
     expect(logs.results[0].admin_id).toBe("admin-user-id");
   });
 
-  test("POST /api/v1/members — validation error for missing fullName", async () => {
+  test("POST /api/v1/members - validation error for missing fullName", async () => {
     const token = await adminToken();
     const res = await app.request("/api/v1/members", {
       method: "POST",
@@ -134,7 +134,7 @@ describe("Members CRUD API", () => {
 
   // ── LIST ────────────────────────────────────────────────────────
 
-  test("GET /api/v1/members — returns paginated list", async () => {
+  test("GET /api/v1/members - returns paginated list", async () => {
     const token = await adminToken();
 
     // Create a few members
@@ -155,7 +155,7 @@ describe("Members CRUD API", () => {
     expect(json.meta.page).toBe(1);
   });
 
-  test("GET /api/v1/members — filters by name", async () => {
+  test("GET /api/v1/members - filters by name", async () => {
     const token = await adminToken();
     await createMember(token, { fullName: "Adeola Johnson" });
     await createMember(token, { fullName: "Blessing Okafor" });
@@ -170,7 +170,7 @@ describe("Members CRUD API", () => {
     expect(json.data[0].fullName).toBe("Adeola Johnson");
   });
 
-  test("GET /api/v1/members — filters by department", async () => {
+  test("GET /api/v1/members - filters by department", async () => {
     const token = await adminToken();
     await createMember(token, { fullName: "A", department: "Choir" });
     await createMember(token, { fullName: "B", department: "Media" });
@@ -186,7 +186,7 @@ describe("Members CRUD API", () => {
 
   // ── GET BY ID ───────────────────────────────────────────────────
 
-  test("GET /api/v1/members/:id — returns single member", async () => {
+  test("GET /api/v1/members/:id - returns single member", async () => {
     const token = await adminToken();
     const createRes = await createMember(token);
     const { data: created } = (await createRes.json()) as any;
@@ -200,7 +200,7 @@ describe("Members CRUD API", () => {
     expect(json.data.id).toBe(created.id);
   });
 
-  test("GET /api/v1/members/:id — returns 404 for non-existent", async () => {
+  test("GET /api/v1/members/:id - returns 404 for non-existent", async () => {
     const token = await adminToken();
     const res = await app.request("/api/v1/members/non-existent-id", {
       headers: { Authorization: `Bearer ${token}` },
@@ -211,7 +211,7 @@ describe("Members CRUD API", () => {
 
   // ── UPDATE ──────────────────────────────────────────────────────
 
-  test("PATCH /api/v1/members/:id — updates member + creates audit diff", async () => {
+  test("PATCH /api/v1/members/:id - updates member + creates audit diff", async () => {
     const token = await adminToken();
     const createRes = await createMember(token);
     const { data: created } = (await createRes.json()) as any;
@@ -240,7 +240,7 @@ describe("Members CRUD API", () => {
     expect(changes.phone.new).toBe("+2349087654321");
   });
 
-  test("PATCH /api/v1/members/:id — returns 404 for non-existent", async () => {
+  test("PATCH /api/v1/members/:id - returns 404 for non-existent", async () => {
     const token = await adminToken();
     const res = await app.request("/api/v1/members/non-existent-id", {
       method: "PATCH",
@@ -254,9 +254,28 @@ describe("Members CRUD API", () => {
     expect(res.status).toBe(404);
   });
 
+  test("PATCH /api/v1/members/:id - rejects standard admin role", async () => {
+    const sysadminToken = await adminToken();
+    const createRes = await createMember(sysadminToken);
+    const { data: created } = (await createRes.json()) as any;
+    const adminTokenValue = await adminToken({ role: "admin", userId: "regular-admin-id" });
+
+    const res = await app.request(`/api/v1/members/${created.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ department: "Media" }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminTokenValue}`,
+      },
+    }, env);
+
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as any).error).toBe("You do not have permissions for this action");
+  });
+
   // ── SOFT DELETE ─────────────────────────────────────────────────
 
-  test("DELETE /api/v1/members/:id — soft deletes (isActive = false)", async () => {
+  test("DELETE /api/v1/members/:id - soft deletes (isActive = false)", async () => {
     const token = await adminToken();
     const createRes = await createMember(token);
     const { data: created } = (await createRes.json()) as any;
@@ -277,7 +296,7 @@ describe("Members CRUD API", () => {
     expect(logs.results.length).toBe(1);
   });
 
-  test("DELETE /api/v1/members/:id — returns 404 for non-existent", async () => {
+  test("DELETE /api/v1/members/:id - returns 404 for non-existent", async () => {
     const token = await adminToken();
     const res = await app.request("/api/v1/members/non-existent-id", {
       method: "DELETE",
@@ -289,12 +308,12 @@ describe("Members CRUD API", () => {
 
   // ── AUTH GUARD ──────────────────────────────────────────────────
 
-  test("GET /api/v1/members — rejects unauthenticated requests", async () => {
+  test("GET /api/v1/members - rejects unauthenticated requests", async () => {
     const res = await app.request("/api/v1/members", {}, env);
     expect(res.status).toBe(401);
   });
 
-  test("GET /api/v1/members — rejects 'user' role", async () => {
+  test("GET /api/v1/members - rejects 'user' role", async () => {
     const token = await adminToken({ role: "user" });
     const res = await app.request("/api/v1/members", {
       headers: { Authorization: `Bearer ${token}` },

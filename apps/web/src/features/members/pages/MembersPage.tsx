@@ -1,21 +1,36 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MemberForm } from "../components/MemberForm";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import {
-  Plus,
-  User,
-  Loader2,
-  Search,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Lock, Loader2, MoreHorizontal, Plus, Search, User, ChevronLeft, ChevronRight, StickyNote, Pencil } from "lucide-react";
+import { MEMBER_PROFILE_EDITOR_ROLES } from "@nehemiah/core/constants";
+import { type Member, type MemberNote } from "@nehemiah/core/schemas";
 import { apiClient } from "../../../lib/api";
-import { Member } from "@nehemiah/core/schemas";
-import { Badge } from "../../../components/ui/badge";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { canEditMemberProfile, ensureRoleAccess } from "../../../lib/permissions";
 import { PageHeader } from "../../../components/app/PageHeader";
+import { ContactValue } from "../../../components/app/ContactValue";
+import { CopyableDetailField } from "../../../components/app/CopyableDetailField";
+import { MemberForm } from "../components/MemberForm";
+import { MemberNoteForm } from "../components/MemberNoteForm";
+import { getMemberAvatar } from "../lib/memberDisplay";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu";
+import { Input } from "../../../components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,36 +39,32 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../../components/ui/dialog";
-import { getMemberAvatar } from "../lib/memberDisplay";
-import { ContactValue } from "../../../components/app/ContactValue";
 
 const ITEMS_PER_PAGE = 10;
 
 export const MembersPage: React.FC = () => {
+  const user = useAuthStore((state) => state.user);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [memberForEdit, setMemberForEdit] = useState<Member | null>(null);
+  const [memberForNote, setMemberForNote] = useState<Member | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const canEditProfiles = canEditMemberProfile(user);
 
   const { data: members, isLoading, error } = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
       const response = await apiClient<{ data: Member[] }>("/members");
+      return response.data;
+    },
+  });
+
+  const { data: selectedMemberNotes, isLoading: isLoadingNotes } = useQuery({
+    queryKey: ["member-notes", selectedMember?.id],
+    enabled: Boolean(selectedMember?.id),
+    queryFn: async () => {
+      const response = await apiClient<{ data: MemberNote[] }>(`/notes/members/${selectedMember?.id}`);
       return response.data;
     },
   });
@@ -64,10 +75,10 @@ export const MembersPage: React.FC = () => {
 
     const query = searchQuery.toLowerCase();
     return members.filter(
-      (m) =>
-        m.fullName.toLowerCase().includes(query) ||
-        (m.email && m.email.toLowerCase().includes(query)) ||
-        (m.phone && m.phone.includes(query))
+      (member) =>
+        member.fullName.toLowerCase().includes(query) ||
+        (member.email && member.email.toLowerCase().includes(query)) ||
+        (member.phone && member.phone.includes(query))
     );
   }, [members, searchQuery]);
 
@@ -80,6 +91,42 @@ export const MembersPage: React.FC = () => {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
+
+  const openEditMember = (member: Member) => {
+    const allowed = ensureRoleAccess({
+      user,
+      allowedRoles: MEMBER_PROFILE_EDITOR_ROLES,
+    });
+
+    if (!allowed) {
+      return;
+    }
+
+    setMemberForEdit(member);
+  };
+
+  const detailsFooterActions = selectedMember ? (
+    <div className="flex flex-wrap justify-end gap-2 border-t border-border/60 pt-4">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setMemberForNote(selectedMember)}
+      >
+        <StickyNote className="h-4 w-4" />
+        Add note
+      </Button>
+      <Button
+        type="button"
+        onClick={() => openEditMember(selectedMember)}
+        variant={canEditProfiles ? "default" : "outline"}
+        disabled={!canEditProfiles}
+        title={!canEditProfiles ? "Only sysadmins and superadmins can edit member profiles" : undefined}
+      >
+        {canEditProfiles ? <Pencil className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+        {canEditProfiles ? "Edit profile" : "Edit restricted"}
+      </Button>
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-6">
@@ -96,7 +143,7 @@ export const MembersPage: React.FC = () => {
       />
 
       <div className="space-y-4">
-        <div className="surface-card min-h-[500px] p-6 sm:p-7 flex flex-col">
+        <div className="surface-card flex min-h-[500px] flex-col p-6 sm:p-7">
           <div className="mb-6 flex flex-col gap-4 border-b border-border/60 pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="flex items-center gap-3">
@@ -109,11 +156,11 @@ export const MembersPage: React.FC = () => {
               </p>
             </div>
             <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search members"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-10"
               />
             </div>
@@ -134,7 +181,9 @@ export const MembersPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-medium text-foreground">No members found</h3>
               <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                {searchQuery ? "Try a broader search term or clear the filter." : "Add your first member to start the directory."}
+                {searchQuery
+                  ? "Try a broader search term or clear the filter."
+                  : "Add your first member to start the directory."}
               </p>
             </div>
           ) : (
@@ -144,7 +193,7 @@ export const MembersPage: React.FC = () => {
                   <TableHeader className="bg-accent/45">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="w-[320px]">Member</TableHead>
-                    <TableHead>Contact</TableHead>
+                      <TableHead>Contact</TableHead>
                       <TableHead>Profile</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -161,7 +210,9 @@ export const MembersPage: React.FC = () => {
                                 <span aria-hidden="true">{avatar}</span>
                               </div>
                               <div className="min-w-0">
-                                <span className="block max-w-[220px] truncate font-semibold text-foreground/90">{member.fullName}</span>
+                                <span className="block max-w-[220px] truncate font-semibold text-foreground/90">
+                                  {member.fullName}
+                                </span>
                                 <span className="mt-1 block text-xs uppercase tracking-[0.16em] text-muted-foreground">
                                   Member record
                                 </span>
@@ -189,14 +240,26 @@ export const MembersPage: React.FC = () => {
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-[180px]">
+                              <DropdownMenuContent align="end" className="w-[220px]">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => setSelectedMember(member)}>
                                   View details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Edit profile</DropdownMenuItem>
-                                <DropdownMenuItem>Add note</DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openEditMember(member)}
+                                  disabled={!canEditProfiles}
+                                  title={!canEditProfiles ? "Only sysadmins and superadmins can edit member profiles" : undefined}
+                                >
+                                  {canEditProfiles ? <Pencil className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                  Edit profile
+                                  {!canEditProfiles ? (
+                                    <DropdownMenuShortcut>Sys/Super</DropdownMenuShortcut>
+                                  ) : null}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setMemberForNote(member)}>
+                                  Add note
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -217,7 +280,7 @@ export const MembersPage: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                       disabled={currentPage === 1}
                       className="bg-white/50"
                     >
@@ -227,7 +290,7 @@ export const MembersPage: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                       disabled={currentPage === totalPages}
                       className="bg-white/50"
                     >
@@ -252,8 +315,54 @@ export const MembersPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(selectedMember)} onOpenChange={(open) => !open && setSelectedMember(null)}>
+      <Dialog open={Boolean(memberForEdit)} onOpenChange={(open) => !open && setMemberForEdit(null)}>
+        <DialogContent className="sm:max-w-3xl">
+          {memberForEdit ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit member profile</DialogTitle>
+                <DialogDescription>
+                  Update {memberForEdit.fullName}&apos;s member record.
+                </DialogDescription>
+              </DialogHeader>
+              <MemberForm
+                member={memberForEdit}
+                onDone={(savedMember) => {
+                  setMemberForEdit(null);
+                  setSelectedMember((currentMember) =>
+                    currentMember?.id === savedMember.id ? savedMember : currentMember
+                  );
+                }}
+              />
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(memberForNote)} onOpenChange={(open) => !open && setMemberForNote(null)}>
         <DialogContent className="sm:max-w-2xl">
+          {memberForNote ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Add note</DialogTitle>
+                <DialogDescription>
+                  Save a private note for {memberForNote.fullName}.
+                </DialogDescription>
+              </DialogHeader>
+              <MemberNoteForm
+                member={memberForNote}
+                onDone={() => {
+                  setMemberForNote(null);
+                  setSelectedMember(memberForNote);
+                }}
+              />
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(selectedMember)} onOpenChange={(open) => !open && setSelectedMember(null)}>
+        <DialogContent className="sm:max-w-3xl">
           {selectedMember ? (
             <>
               <DialogHeader>
@@ -261,35 +370,88 @@ export const MembersPage: React.FC = () => {
                 <DialogDescription>Member details.</DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="surface-subtle p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Contact</p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <p className="text-foreground">{selectedMember.phone || "No phone number"}</p>
-                    <p className="text-muted-foreground">{selectedMember.email || "No email address"}</p>
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CopyableDetailField
+                    label="Phone"
+                    value={selectedMember.phone}
+                    emptyLabel="No phone number"
+                    href={selectedMember.phone ? `tel:${selectedMember.phone}` : undefined}
+                  />
+                  <CopyableDetailField
+                    label="Email"
+                    value={selectedMember.email}
+                    emptyLabel="No email address"
+                    href={selectedMember.email ? `mailto:${selectedMember.email}` : undefined}
+                  />
+                  <CopyableDetailField
+                    label="Address"
+                    value={selectedMember.homeAddress}
+                    emptyLabel="No address recorded"
+                    multiline
+                  />
+                  <div className="surface-subtle p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                      Profile
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Badge variant="outline" className="normal-case tracking-[0.08em]">
+                        {selectedMember.gender || "Gender not set"}
+                      </Badge>
+                      <Badge variant="outline" className="normal-case tracking-[0.08em]">
+                        {selectedMember.ageGroup || "Age group not set"}
+                      </Badge>
+                      <Badge variant="outline" className="normal-case tracking-[0.08em]">
+                        {selectedMember.maritalStatus || "Marital status not set"}
+                      </Badge>
+                      <Badge variant="outline" className="normal-case tracking-[0.08em]">
+                        {selectedMember.department || "Department not set"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-                <div className="surface-subtle p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Profile</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Badge variant="outline" className="normal-case tracking-[0.08em]">
-                      {selectedMember.gender || "Gender not set"}
-                    </Badge>
-                    <Badge variant="outline" className="normal-case tracking-[0.08em]">
-                      {selectedMember.ageGroup || "Age group not set"}
-                    </Badge>
-                    <Badge variant="outline" className="normal-case tracking-[0.08em]">
-                      {selectedMember.maritalStatus || "Marital status not set"}
-                    </Badge>
+
+                <div className="surface-subtle space-y-4 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        Notes
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Private staff notes for this member.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setMemberForNote(selectedMember)}>
+                      <StickyNote className="h-4 w-4" />
+                      Add note
+                    </Button>
                   </div>
-                </div>
-                <div className="surface-subtle p-4 sm:col-span-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Address</p>
-                  <p className="mt-3 text-sm text-foreground">
-                    {selectedMember.homeAddress || "No address recorded."}
-                  </p>
+
+                  {isLoadingNotes ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading notes...
+                    </div>
+                  ) : selectedMemberNotes && selectedMemberNotes.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedMemberNotes.map((note) => (
+                        <div key={note.id} className="rounded-2xl border border-border/60 bg-background/80 p-4">
+                          <p className="whitespace-pre-wrap text-sm text-foreground">{note.note}</p>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            {note.createdAt
+                              ? new Date(note.createdAt).toLocaleString()
+                              : "Saved note"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No notes yet.</p>
+                  )}
                 </div>
               </div>
+
+              {detailsFooterActions}
             </>
           ) : null}
         </DialogContent>

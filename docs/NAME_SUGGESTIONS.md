@@ -1,19 +1,21 @@
-# Name Suggestions (Open-Source Friendly Shortlist)
+# Name Suggestions (Rooted & Premium Shortlist)
 
-## Selection filter (for GitHub/open-source)
-- Easy to spell + say out loud
-- Searchable + distinctive (not a single generic word)
-- Flexible enough to cover more than attendance
-- Avoids “CMS” in the public-facing name
+## Selection Filter (The "Ecclesia" Vibe)
+- **Rooted:** Based on Greek, Hebrew, or Latin biblical concepts.
+- **Phonetic:** Easier to spell and say than "Ecclesia."
+- **Premium:** Sounds like a foundational platform, not just a tool.
+- **Searchable:** Short, punchy, and brandable.
 
-## Top picks (5–10)
-- **FlockHQ** — best all-around: church-coded, modern, brandable
-- **FlockFlow** — “church meets workflow automation” in one phrase
-- **BeaconHQ** — guidance/signal metaphor; strong “product” feel
-- **StewardHQ** — admin + care vibe; fits the audit/ops nature
-- ~~**ChurchFlow** — explicit, clear, very discoverable~~
-- **FlockOps** — clean “ops suite” positioning
-- **BeaconFlow** — pairs well if “Flow” becomes the product line
-- **StewardFlow** — best “process + stewardship” blend
+## Top Picks (Roots-Based)
 
-https://churchflow.ailabsafrica.com/#ministries
+- **Oikos** — (Greek: *Household*) Represents the "Household of God." Short, trendy, and covers everything from care to admin.
+- **Ezra** — (Hebrew: *Help/Helper*) The scribe who reorganized the community. Perfect "helper" branding for a management system.
+- **Selah** — (Hebrew: *Pause/Reflect*) Iconic and high-end. Suggests a rhythmic, thoughtful approach to ministry.
+- **Doxa** — (Greek: *Glory*) Short, sharp, and sounds like a modern tech leader (e.g., Axios).
+- **Logos** — (Greek: *The Word/Reason*) The "logic" or foundational intelligence behind the church operations.
+- **Koinos** — (Greek: *Common/Shared*) Root of *Koinonia*. Focuses on the community and shared resources.
+- **Petra** — (Greek: *Rock*) Strong, foundational, and extremely easy to spell.
+- **Ecclesia** — (The Current Choice) Still the most "literal" definition, but harder to spell than the ones above.
+
+## Comparison Notes
+While **Ecclesia** is the most precise theological term for "Assembly," names like **Oikos** or **Ezra** are significantly easier for daily use (typing URLs, emails, etc.) while maintaining that same ancient authority.

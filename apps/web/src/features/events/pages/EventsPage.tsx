@@ -78,7 +78,7 @@ export const EventsPage: React.FC = () => {
                   const eDate = new Date(event.endDate);
 
                   return (
-                    <div key={event.id} className="group relative flex flex-col gap-5 rounded-[1.5rem] border border-border/70 bg-accent/40 p-5 transition-all duration-200 hover:bg-white hover:shadow-[0_6px_16px_rgba(15,23,42,0.05)] sm:flex-row">
+                    <div key={event.id} className="group relative flex flex-col gap-5 rounded-3xl border border-border/70 bg-accent/40 p-5 transition-all duration-200 hover:bg-white hover:shadow-[0_6px_16px_rgba(15,23,42,0.05)] sm:flex-row">
                       <div className="flex min-w-16 flex-col items-center justify-center self-start rounded-xl bg-primary/6 px-3 py-2 text-primary sm:self-center">
                         <span className="text-xs font-semibold uppercase tracking-wider">{format(sDate, "MMM")}</span>
                         <span className="text-3xl font-black leading-none my-0.5">{format(sDate, "dd")}</span>

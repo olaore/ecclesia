@@ -25,3 +25,8 @@ export type ChurchEventType = (typeof CHURCH_EVENT_TYPES)[number];
 
 export const EVENT_VISIBILITY = ['public', 'private'] as const;
 export type EventVisibility = (typeof EVENT_VISIBILITY)[number];
+
+export const USER_ROLES = ['sysadmin', 'superadmin', 'admin', 'user'] as const;
+export type UserRoleValue = (typeof USER_ROLES)[number];
+
+export const MEMBER_PROFILE_EDITOR_ROLES = ['sysadmin', 'superadmin'] as const;

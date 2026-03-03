@@ -1,7 +1,6 @@
-import { expect, test, describe, beforeAll } from "vitest";
+import { expect, test, describe } from "vitest";
 import { Hono } from "hono";
-import { sign } from "hono/jwt";
-import { hasRole, hasUnitAccess } from "./auth";
+import { hasRole, hasUnitAccess, userHasRole } from "./auth";
 
 const SECRET = "test_secret";
 
@@ -36,6 +35,30 @@ describe("Authorization Guards", () => {
       headers: { Authorization: "Bearer user" },
     });
     expect(res.status).toBe(403);
+  });
+
+  test("hasRole - Uses custom message", async () => {
+    const customApp = new Hono();
+
+    customApp.use("/admin/*", async (c, next) => {
+      c.set("jwtPayload", { role: "admin" });
+      await next();
+    });
+
+    customApp.get(
+      "/admin/custom",
+      hasRole(["sysadmin"], { message: "You do not have permissions for this action" }),
+      (c) => c.json({ ok: true })
+    );
+
+    const res = await customApp.request("/admin/custom");
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as any).error).toBe("You do not have permissions for this action");
+  });
+
+  test("userHasRole - Matches allowed roles", () => {
+    expect(userHasRole("sysadmin", ["sysadmin", "superadmin"])).toBe(true);
+    expect(userHasRole("admin", ["sysadmin", "superadmin"])).toBe(false);
   });
 
   test("hasUnitAccess - Allow same unit for admin", async () => {

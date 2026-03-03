@@ -65,7 +65,7 @@
   }
 
   .surface-card {
-    @apply rounded-[1.5rem] border border-white/70 bg-white/88 shadow-[0_8px_24px_rgba(17,24,39,0.06)];
+    @apply rounded-3xl border border-white/70 bg-white/88 shadow-[0_8px_24px_rgba(17,24,39,0.06)];
   }
 
   .surface-subtle {
@@ -74,6 +74,32 @@
 
   .hairline {
     @apply border-white/70;
+  }
+
+  .bg-page-header {
+    background-image: 
+      /* Top layer: Fade from solid white to transparent to hide stripes on the left */
+      radial-gradient(
+        circle at bottom left,
+        hsl(0 0% 100%) 15%,
+        hsl(34 40% 92%) 45%,
+        hsl(34 50% 90% / 0) 70%
+      ),
+      /* Middle layer: Sharper, more frequent stripes using a deeper matching pinkish-orange */
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 12px,
+        hsl(34 78% 80% / 0.05) 12px,
+        hsl(34 78% 80% / 0.05) 24px
+      ),
+      /* Bottom layer: The deep pinkish base background graduating from white */
+      radial-gradient(
+        circle at bottom left,
+        hsl(0 0% 100%) 15%,
+        hsl(34 40% 92%) 45%,
+        hsl(34 65% 84%) 100%
+      );
   }
 }
 

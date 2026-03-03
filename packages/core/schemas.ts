@@ -6,6 +6,7 @@ import {
   ATTENDANCE_EVENT_TYPES,
   CHURCH_EVENT_TYPES,
   EVENT_VISIBILITY,
+  USER_ROLES,
 } from "./constants";
 
 // Example shared schema
@@ -81,7 +82,7 @@ export const auditLogSchema = z.object({
 export type AuditLog = z.infer<typeof auditLogSchema>;
 
 // Auth & Users
-export const userRoleSchema = z.enum(['sysadmin', 'superadmin', 'admin', 'user']);
+export const userRoleSchema = z.enum(USER_ROLES);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export const userSchema = z.object({
@@ -170,12 +171,13 @@ export const memberNoteSchema = z.object({
   memberId: z.string().uuid(),
   note: z.string().min(1, "Note cannot be empty"),
   adminId: z.string().uuid().optional(), // Auto-filled from JWT on create
+  createdAt: z.coerce.date().optional(),
 });
 
 export type MemberNote = z.infer<typeof memberNoteSchema>;
 
 /** Schema for creating a note (POST /api/v1/notes) */
-export const createNoteSchema = memberNoteSchema.omit({ id: true, adminId: true });
+export const createNoteSchema = memberNoteSchema.omit({ id: true, adminId: true, createdAt: true });
 export type CreateNoteRequest = z.infer<typeof createNoteSchema>;
 
 /** Schema for updating a note (PATCH /api/v1/notes/:id) */

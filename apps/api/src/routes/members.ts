@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { eq, like, and, sql, count, desc } from "drizzle-orm";
+import { eq, like, and, count, desc } from "drizzle-orm";
 import { membersTable, auditLogsTable } from "@nehemiah/db/schema";
 import { createMemberSchema, updateMemberSchema } from "@nehemiah/core/schemas";
+import { MEMBER_PROFILE_EDITOR_ROLES } from "@nehemiah/core/constants";
 import { verifyJWT, hasRole } from "../middleware/auth";
 import { buildAuditDiff } from "../utils/audit";
 
@@ -142,54 +143,64 @@ members.post("/", async (c) => {
 /**
  * PATCH /:id — Update a member
  */
-members.patch("/:id", async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json();
-  const result = updateMemberSchema.safeParse(body);
+members.patch(
+  "/:id",
+  hasRole(MEMBER_PROFILE_EDITOR_ROLES, {
+    message: "You do not have permissions for this action",
+  }),
+  async (c) => {
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const result = updateMemberSchema.safeParse(body);
 
-  if (!result.success) {
-    return c.json({ success: false, error: result.error.message }, 400);
-  }
+    if (!result.success) {
+      return c.json({ success: false, error: result.error.message }, 400);
+    }
 
-  // Reject empty updates
-  const updates = result.data;
-  if (Object.keys(updates).length === 0) {
-    return c.json({ success: false, error: "No fields to update" }, 400);
-  }
+    // Reject empty updates
+    const updates = result.data;
+    if (Object.keys(updates).length === 0) {
+      return c.json({ success: false, error: "No fields to update" }, 400);
+    }
 
-  const db = drizzle(c.env.DB);
-  const payload = c.get("jwtPayload");
+    const db = drizzle(c.env.DB);
+    const payload = c.get("jwtPayload");
 
-  // Fetch current state for diff
-  const existing = await db
-    .select()
-    .from(membersTable)
-    .where(eq(membersTable.id, id))
-    .get();
-
-  if (!existing) {
-    return c.json({ success: false, error: "Member not found" }, 404);
-  }
-
-  // Build a JSON diff of changed fields
-  const diff = buildAuditDiff(existing as Record<string, unknown>, updates as Record<string, unknown>);
-
-  const batchResults = await db.batch([
-    db.update(membersTable)
-      .set({ ...updates, updatedAt: new Date() })
+    // Fetch current state for diff
+    const existing = await db
+      .select()
+      .from(membersTable)
       .where(eq(membersTable.id, id))
-      .returning(),
-    db.insert(auditLogsTable).values({
-      entityType: "member",
-      entityId: id,
-      action: "UPDATE",
-      adminId: payload.userId,
-      changes: JSON.stringify(diff),
-    })
-  ]);
+      .get();
 
-  return c.json({ success: true, data: batchResults[0][0] });
-});
+    if (!existing) {
+      return c.json({ success: false, error: "Member not found" }, 404);
+    }
+
+    // Build a JSON diff of changed fields
+    const diff = buildAuditDiff(existing as Record<string, unknown>, updates as Record<string, unknown>);
+
+    if (Object.keys(diff).length === 0) {
+      return c.json({ success: true, data: existing });
+    }
+
+    const batchResults = await db.batch([
+      db.update(membersTable)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(membersTable.id, id))
+        .returning(),
+      db.insert(auditLogsTable).values({
+        entityType: "member",
+        entityId: id,
+        action: "UPDATE",
+        adminId: payload.userId,
+        changes: JSON.stringify(diff),
+      })
+    ]);
+
+    return c.json({ success: true, data: batchResults[0][0] });
+  }
+);
 
 /**
  * DELETE /:id — Soft-delete (set isActive = false)
